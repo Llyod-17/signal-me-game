@@ -1,0 +1,2259 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap");
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --g: #39ff14;
+        --gd: #1a7a09;
+        --gdk: #0d3d04;
+        --r: #ff3333;
+        --a: #ffb700;
+        --bg: #04080a;
+        --panel: #070e10;
+        --bdr: #0e2a1a;
+        --td: #1f6b10;
+        --font: "Share Tech Mono", monospace;
+      }
+      body {
+        background: var(--bg);
+        color: var(--g);
+        font-family: var(--font);
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+      }
+      #scanline {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.18) 2px,
+          rgba(0, 0, 0, 0.18) 4px
+        );
+        z-index: 999;
+        animation: scan 8s linear infinite;
+      }
+      #crt {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at center,
+          transparent 60%,
+          rgba(0, 0, 0, 0.7) 100%
+        );
+        z-index: 998;
+      }
+      #noise {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        opacity: 0;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(255, 0, 0, 0.04) 0,
+          transparent 1px
+        );
+        z-index: 50;
+        transition: opacity 0.3s;
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 16px 14px;
+      }
+      .hdr {
+        text-align: center;
+        padding: 14px 0 8px;
+        border-bottom: 1px solid var(--bdr);
+        margin-bottom: 14px;
+        position: relative;
+      }
+      .hdr h1 {
+        font-family: "VT323", monospace;
+        font-size: 40px;
+        letter-spacing: 8px;
+        color: var(--g);
+        text-shadow:
+          0 0 12px var(--g),
+          0 0 30px rgba(57, 255, 20, 0.3);
+      }
+      .hdr .sub {
+        font-size: 10px;
+        color: var(--td);
+        letter-spacing: 3px;
+        margin-top: 3px;
+      }
+      .hdr .version {
+        position: absolute;
+        right: 0;
+        top: 14px;
+        font-size: 9px;
+        color: var(--td);
+        letter-spacing: 2px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--bdr);
+        border-radius: 3px;
+        padding: 12px;
+        position: relative;
+      }
+      .panel::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--gd), transparent);
+      }
+      .pt {
+        font-size: 9px;
+        letter-spacing: 4px;
+        color: var(--td);
+        margin-bottom: 9px;
+        border-bottom: 1px solid var(--gdk);
+        padding-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .pt .badge {
+        font-size: 8px;
+        padding: 2px 6px;
+        border: 1px solid currentColor;
+        border-radius: 2px;
+      }
+      .fd {
+        font-family: "VT323", monospace;
+        font-size: 52px;
+        color: var(--g);
+        text-align: center;
+        letter-spacing: 4px;
+        text-shadow: 0 0 10px var(--g);
+        padding: 6px 0;
+        line-height: 1;
+        transition: color 0.3s;
+      }
+      .fs {
+        font-size: 10px;
+        color: var(--td);
+        text-align: center;
+        letter-spacing: 2px;
+      }
+      .tb {
+        margin: 8px 0 5px;
+      }
+      .tl {
+        font-size: 9px;
+        letter-spacing: 2px;
+        color: var(--td);
+        margin-bottom: 3px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .tr {
+        height: 6px;
+        background: var(--gdk);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .tf {
+        height: 100%;
+        background: var(--g);
+        transition:
+          width 0.1s linear,
+          background 0.3s;
+        border-radius: 2px;
+      }
+      .tf.warn {
+        background: var(--a);
+      }
+      .tf.danger {
+        background: var(--r);
+        box-shadow: 0 0 5px var(--r);
+      }
+      .sm {
+        display: flex;
+        gap: 2px;
+        margin: 7px 0;
+        align-items: flex-end;
+        height: 28px;
+      }
+      .bar {
+        flex: 1;
+        background: var(--gdk);
+        border-radius: 1px;
+        transition:
+          height 0.09s,
+          background 0.2s;
+      }
+      .sb {
+        font-family: "VT323", monospace;
+        font-size: 56px;
+        color: var(--g);
+        text-align: center;
+        text-shadow: 0 0 12px var(--g);
+        line-height: 1;
+        transition: all 0.2s;
+      }
+      .sl {
+        font-size: 9px;
+        color: var(--td);
+        text-align: center;
+        letter-spacing: 3px;
+        margin-top: 1px;
+      }
+      .sh {
+        font-size: 11px;
+        color: var(--a);
+        text-align: center;
+        margin-top: 5px;
+        letter-spacing: 2px;
+      }
+      .stats {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+      }
+      .stat {
+        text-align: center;
+        background: var(--gdk);
+        border-radius: 2px;
+        padding: 5px 3px;
+      }
+      .sv {
+        font-family: "VT323", monospace;
+        font-size: 22px;
+        color: var(--g);
+      }
+      .sk {
+        font-size: 8px;
+        color: var(--td);
+        letter-spacing: 1px;
+        margin-top: 1px;
+      }
+      .lb {
+        height: 100px;
+        overflow-y: auto;
+        font-size: 11px;
+        line-height: 1.7;
+        color: var(--td);
+        scrollbar-width: thin;
+        scrollbar-color: var(--gdk) transparent;
+      }
+      .lb p {
+        margin-bottom: 3px;
+        padding: 2px 0;
+        border-bottom: 1px solid var(--gdk);
+      }
+      .lb p.new {
+        color: var(--g);
+        animation: fadein 1s;
+      }
+      .lb p.alert {
+        color: var(--r);
+        animation: fadein 0.5s;
+      }
+      .logb {
+        height: 100px;
+        overflow-y: auto;
+        font-size: 10px;
+        line-height: 1.8;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gdk) transparent;
+      }
+      .le {
+        padding: 1px 0;
+      }
+      .le.ok {
+        color: var(--g);
+      }
+      .le.warn {
+        color: var(--a);
+      }
+      .le.bad {
+        color: var(--r);
+      }
+      .le.sys {
+        color: var(--td);
+      }
+      .act {
+        grid-column: 1/-1;
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+      }
+      .ea {
+        flex: 1;
+        background: var(--gdk);
+        border: 1px solid var(--bdr);
+        border-radius: 3px;
+        padding: 9px 12px;
+        font-family: var(--font);
+        font-size: 12px;
+        color: var(--g);
+        resize: none;
+        outline: none;
+        min-height: 58px;
+        transition: border-color 0.2s;
+      }
+      .ea:focus {
+        border-color: var(--gd);
+      }
+      .ea::placeholder {
+        color: var(--td);
+      }
+      .bg {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 130px;
+      }
+      .btn {
+        font-family: var(--font);
+        font-size: 11px;
+        letter-spacing: 2px;
+        padding: 9px 12px;
+        border: 1px solid var(--g);
+        background: transparent;
+        color: var(--g);
+        cursor: pointer;
+        border-radius: 3px;
+        transition: all 0.15s;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .btn::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--g);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.2s;
+      }
+      .btn:hover:not(:disabled)::before {
+        transform: scaleX(1);
+      }
+      .btn:hover:not(:disabled) {
+        color: var(--bg);
+      }
+      .btn span {
+        position: relative;
+        z-index: 1;
+      }
+      .btn:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+      }
+      .btn.db {
+        border-color: var(--r);
+        color: var(--r);
+      }
+      .btn.db::before {
+        background: var(--r);
+      }
+      .btn.db:hover:not(:disabled) {
+        color: var(--bg);
+      }
+      .btn.amb {
+        border-color: var(--a);
+        color: var(--a);
+      }
+      .btn.amb::before {
+        background: var(--a);
+      }
+      .btn.amb:hover:not(:disabled) {
+        color: var(--bg);
+      }
+      .sr {
+        grid-column: 1/-1;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 10px;
+      }
+      .sd {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--g);
+        animation: pulse 1.5s infinite;
+        flex-shrink: 0;
+      }
+      .sd.dead {
+        background: var(--r);
+        animation: none;
+      }
+      .sd.idle {
+        background: var(--a);
+      }
+      #st {
+        color: var(--td);
+        letter-spacing: 1px;
+        flex: 1;
+        font-size: 10px;
+      }
+      .nv {
+        color: var(--a);
+        letter-spacing: 2px;
+      }
+      .go {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.93);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .go.show {
+        display: flex;
+      }
+      .got {
+        font-family: "VT323", monospace;
+        font-size: 72px;
+        color: var(--r);
+        text-shadow: 0 0 25px var(--r);
+        letter-spacing: 8px;
+        animation: flicker 0.5s infinite;
+      }
+      .gos {
+        font-family: "VT323", monospace;
+        font-size: 38px;
+        color: var(--g);
+      }
+      .gom {
+        font-size: 11px;
+        color: var(--td);
+        letter-spacing: 2px;
+        text-align: center;
+        max-width: 420px;
+        line-height: 1.9;
+      }
+      .goh {
+        font-size: 13px;
+        color: var(--a);
+        letter-spacing: 3px;
+      }
+      .achs {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 500px;
+      }
+      .ach {
+        font-size: 10px;
+        padding: 4px 10px;
+        border: 1px solid var(--a);
+        color: var(--a);
+        border-radius: 2px;
+        letter-spacing: 1px;
+      }
+      .evt {
+        position: fixed;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 200;
+        display: none;
+        padding: 10px 20px;
+        border: 1px solid var(--r);
+        background: rgba(4, 8, 10, 0.95);
+        color: var(--r);
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-align: center;
+        min-width: 300px;
+        animation: fadein 0.3s;
+      }
+      .evt.show {
+        display: block;
+      }
+      .evt.warn-e {
+        border-color: var(--a);
+        color: var(--a);
+      }
+      .lv {
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        font-family: "VT323", monospace;
+        font-size: 20px;
+        color: var(--a);
+        letter-spacing: 2px;
+      }
+      .morse-row {
+        grid-column: 1/-1;
+        background: var(--panel);
+        border: 1px solid var(--bdr);
+        border-radius: 3px;
+        padding: 10px 12px;
+      }
+      .morse-display {
+        font-family: "VT323", monospace;
+        font-size: 18px;
+        color: var(--a);
+        letter-spacing: 3px;
+        min-height: 24px;
+        word-break: break-all;
+      }
+      .morse-hint {
+        font-size: 9px;
+        color: var(--td);
+        letter-spacing: 2px;
+        margin-top: 4px;
+      }
+      .minimap {
+        position: relative;
+        width: 100%;
+        height: 80px;
+        background: rgba(57, 255, 20, 0.03);
+        border: 1px solid var(--gdk);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .mm-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--gdk) 1px, transparent 1px),
+          linear-gradient(90deg, var(--gdk) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.5;
+      }
+      .mm-dot {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.5s;
+      }
+      .mm-you {
+        background: var(--g);
+        box-shadow: 0 0 6px var(--g);
+      }
+      .mm-threat {
+        background: var(--r);
+        box-shadow: 0 0 4px var(--r);
+        animation: pulse 1s infinite;
+      }
+      .mm-station {
+        background: var(--a);
+        box-shadow: 0 0 4px var(--a);
+      }
+      .mm-label {
+        position: absolute;
+        font-size: 8px;
+        color: var(--td);
+        letter-spacing: 1px;
+      }
+      .wave-panel {
+        grid-column: 1/-1;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+        padding: 6px 0;
+      }
+      .wave-info {
+        font-family: "VT323", monospace;
+        font-size: 20px;
+        color: var(--a);
+        letter-spacing: 2px;
+      }
+      .wave-bar {
+        flex: 1;
+        height: 3px;
+        background: var(--gdk);
+        border-radius: 1px;
+        overflow: hidden;
+      }
+      .wave-fill {
+        height: 100%;
+        background: var(--a);
+        transition: width 0.3s;
+      }
+      .cmd-display {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .cmd {
+        background: var(--gdk);
+        border-radius: 2px;
+        padding: 6px 8px;
+        font-size: 10px;
+        color: var(--td);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .cmd-key {
+        color: var(--g);
+        font-size: 11px;
+        border: 1px solid var(--gd);
+        padding: 0 4px;
+        border-radius: 1px;
+        flex-shrink: 0;
+      }
+      .power-ups {
+        grid-column: 1/-1;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .power-up {
+        font-size: 10px;
+        padding: 4px 10px;
+        border: 1px solid var(--g);
+        background: rgba(57, 255, 20, 0.05);
+        color: var(--g);
+        border-radius: 2px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .power-up:hover {
+        background: rgba(57, 255, 20, 0.15);
+        transform: scale(1.05);
+      }
+      .power-up:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .power-up.rarity-rare {
+        border-color: var(--a);
+        color: var(--a);
+      }
+      .power-up.rarity-epic {
+        border-color: var(--r);
+        color: var(--r);
+      }
+      .power-bar {
+        grid-column: 1/-1;
+        margin-top: 8px;
+      }
+      .battery-display {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+      .battery-cells {
+        display: flex;
+        gap: 2px;
+      }
+      .battery-cell {
+        width: 16px;
+        height: 20px;
+        border: 1px solid var(--gdk);
+        border-radius: 1px;
+        background: var(--gdk);
+      }
+      .battery-cell.active {
+        background: var(--g);
+        box-shadow: 0 0 4px var(--g);
+      }
+      .battery-cell.low {
+        background: var(--a);
+      }
+      .battery-cell.critical {
+        background: var(--r);
+        box-shadow: 0 0 4px var(--r);
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      @keyframes fadein {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+      @keyframes scan {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: 0 100%;
+        }
+      }
+      @keyframes scoreup {
+        0% {
+          transform: scale(1.4);
+          color: var(--g);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @keyframes glitch {
+        0% {
+          transform: translate(0);
+        }
+        20% {
+          transform: translate(-2px, 2px);
+        }
+        40% {
+          transform: translate(2px, -2px);
+        }
+        60% {
+          transform: translate(-2px, -2px);
+        }
+        80% {
+          transform: translate(2px, 2px);
+        }
+        100% {
+          transform: translate(0);
+        }
+      }
+      .glitch {
+        animation: glitch 0.3s ease-in-out;
+      }
+
+      @keyframes pulseStrong {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 5px var(--g);
+        }
+        50% {
+          transform: scale(1.05);
+          box-shadow:
+            0 0 20px var(--g),
+            0 0 30px rgba(57, 255, 20, 0.3);
+        }
+      }
+
+      @keyframes comboGlow {
+        0% {
+          text-shadow:
+            0 0 10px var(--g),
+            0 0 20px var(--g);
+        }
+        50% {
+          text-shadow:
+            0 0 30px var(--g),
+            0 0 50px var(--a);
+        }
+        100% {
+          text-shadow:
+            0 0 10px var(--g),
+            0 0 20px var(--g);
+        }
+      }
+
+      @keyframes scorePopup {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-50px) scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      @keyframes particleFade {
+        0% {
+          transform: translate(0, 0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--tx), var(--ty)) scale(0);
+          opacity: 0;
+        }
+      }
+
+      .combo-glow {
+        animation: comboGlow 0.5s ease-in-out;
+      }
+      .pulse-strong {
+        animation: pulseStrong 1s ease-in-out infinite;
+      }
+
+      #particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: var(--g);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: particleFade 0.8s ease-out forwards;
+      }
+
+      #screenShake {
+        position: relative;
+        min-height: 100vh;
+      }
+
+      .screen-shake {
+        animation: shake 0.2s ease-in-out;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translate(-2px, 0);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translate(2px, 0);
+        }
+      }
+
+      @keyframes redFlash {
+        0%,
+        100% {
+          background-color: transparent;
+        }
+        50% {
+          background-color: rgba(255, 0, 0, 0.15);
+        }
+      }
+
+      .red-flash {
+        animation: redFlash 0.3s ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="particles"></div>
+    <div id="screenShake">
+      <div id="scanline"></div>
+      <div id="crt"></div>
+      <div id="noise"></div>
+
+      <div class="wrap">
+        <div class="hdr">
+          <h1>SIGNAL TERAKHIR</h1>
+          <div class="sub">EMERGENCY BROADCAST SYSTEM — STATION 7-ALPHA</div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <div class="version">v2.0 // CLASSIFIED</div>
+            <button
+              class="btn"
+              id="upgradeBtn"
+              onclick="openUpgradeShop()"
+              style="padding: 4px 10px; font-size: 10px; letter-spacing: 1px"
+            >
+              <span>🔧 UPGRADES</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="panel">
+            <div class="pt">
+              FREQ MONITOR <span class="badge" id="freqBadge">DISTRESS</span>
+            </div>
+            <div class="fd" id="fd">121.5</div>
+            <div class="fs">MHz — EMERGENCY CHANNEL</div>
+            <div class="tb">
+              <div class="tl">
+                <span>TRANSMIT WINDOW</span><span id="tsec">15s</span>
+              </div>
+              <div class="tr"><div class="tf" id="tf"></div></div>
+            </div>
+            <div class="sm" id="sm">
+              <div class="bar" style="height: 40%"></div>
+              <div class="bar" style="height: 60%"></div>
+              <div class="bar" style="height: 80%"></div>
+              <div class="bar" style="height: 50%"></div>
+              <div class="bar" style="height: 70%"></div>
+              <div class="bar" style="height: 30%"></div>
+              <div class="bar" style="height: 90%"></div>
+              <div class="bar" style="height: 55%"></div>
+              <div class="bar" style="height: 65%"></div>
+              <div class="bar" style="height: 45%"></div>
+              <div class="bar" style="height: 75%"></div>
+              <div class="bar" style="height: 35%"></div>
+              <div class="bar" style="height: 60%"></div>
+              <div class="bar" style="height: 85%"></div>
+              <div class="bar" style="height: 40%"></div>
+              <div class="bar" style="height: 70%"></div>
+            </div>
+            <div class="minimap">
+              <div class="mm-grid"></div>
+              <div
+                class="mm-dot mm-you"
+                id="mmYou"
+                style="left: 50%; top: 50%"
+              ></div>
+              <div
+                class="mm-dot mm-station"
+                id="mmBase"
+                style="left: 30%; top: 25%"
+              ></div>
+              <div
+                class="mm-dot mm-threat"
+                id="mmT1"
+                style="left: 80%; top: 70%; display: none"
+              ></div>
+              <div
+                class="mm-dot mm-threat"
+                id="mmT2"
+                style="left: 15%; top: 80%; display: none"
+              ></div>
+              <div class="mm-label" style="left: 4px; top: 3px">
+                TACTICAL MAP
+              </div>
+              <div class="mm-label" id="mmDist" style="right: 4px; top: 3px">
+                BASE: --km
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="pt">MISSION STATUS</div>
+            <div class="sb" id="sd">0</div>
+            <div class="sl">SIGNALS SENT</div>
+            <div class="sh" id="hs">BEST: 0</div>
+            <div class="stats">
+              <div class="stat">
+                <div class="sv" id="nl">LOW</div>
+                <div class="sk">INTERFERENCE</div>
+              </div>
+              <div class="stat">
+                <div class="sv" id="tl">0</div>
+                <div class="sk">PROXIMITY</div>
+              </div>
+              <div class="stat">
+                <div class="sv" id="waveDisp">W1</div>
+                <div class="sk">WAVE</div>
+              </div>
+            </div>
+            <div class="stats" style="margin-top: 6px">
+              <div class="stat">
+                <div class="sv" id="comboDisp" style="color: var(--a)">0x</div>
+                <div class="sk">COMBO</div>
+              </div>
+              <div class="stat">
+                <div class="sv" id="streakDisp">0</div>
+                <div class="sk">STREAK</div>
+              </div>
+              <div class="stat">
+                <div class="sv" id="mulDisp" style="color: var(--a)">x1</div>
+                <div class="sk">MULTIPLIER</div>
+              </div>
+            </div>
+            <div class="power-bar">
+              <div class="pt" style="margin-bottom: 4px">POWER SUPPLY</div>
+              <div class="battery-display">
+                <div class="battery-cells" id="batteryCells">
+                  <div class="battery-cell active"></div>
+                  <div class="battery-cell active"></div>
+                  <div class="battery-cell active"></div>
+                  <div class="battery-cell active"></div>
+                  <div class="battery-cell active"></div>
+                </div>
+                <span
+                  style="font-size: 9px; color: var(--td); letter-spacing: 1px"
+                  id="batteryText"
+                  >100%</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="pt">
+              INCOMING TRANSMISSIONS <span class="badge" id="loreCount">0</span>
+            </div>
+            <div class="lb" id="lb">
+              <p class="new">
+                ▶ Stasiun 7-Alpha diaktifkan. Cari bantuan segera.
+              </p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="pt">TRANSMISSION LOG</div>
+            <div class="logb" id="logb">
+              <div class="le sys">[ SYSTEM BOOT — SINYAL DARURAT AKTIF ]</div>
+              <div class="le sys">[ Kirim pesan sebelum waktu habis ]</div>
+              <div class="le sys">[ Enter untuk kirim cepat ]</div>
+            </div>
+          </div>
+
+          <div class="morse-row">
+            <div class="pt">
+              MORSE ENCODER
+              <span
+                class="badge"
+                style="color: var(--a); border-color: var(--a)"
+                >PASSIVE</span
+              >
+            </div>
+            <div class="morse-display" id="morseOut">—</div>
+            <div class="morse-hint">
+              PESAN ANDA DIKONVERSI KE MORSE OTOMATIS
+            </div>
+          </div>
+
+          <div class="morse-row" id="incomingMorseRow" style="display: none">
+            <div class="pt">
+              📡 INCOMING MORSE
+              <span
+                class="badge"
+                id="morseTimerBadge"
+                style="color: var(--a); border-color: var(--a)"
+                >15s</span
+              >
+            </div>
+            <div class="morse-display" id="incomingMorse">—</div>
+            <div class="morse-hint" style="margin-bottom: 8px">
+              DECODE DAN KETIK DI BAWAH UNTUK BONUS!
+            </div>
+            <input
+              type="text"
+              id="morseAnswer"
+              style="
+                width: 100%;
+                background: var(--gdk);
+                color: var(--g);
+                border: 1px solid var(--bdr);
+                padding: 8px;
+                font-family: var(--font);
+                outline: none;
+              "
+              placeholder="Ketik jawaban..."
+            />
+          </div>
+
+          <div class="act">
+            <textarea
+              class="ea"
+              id="mi"
+              placeholder="KETIK PESAN DARURAT... (contoh: MAYDAY POSISI -6.2, 106.8 BUTUH EVAKUASI)"
+              rows="3"
+            ></textarea>
+            <div class="bg">
+              <button class="btn" id="sendB" onclick="sendSignal()">
+                <span>▶ TRANSMIT</span>
+              </button>
+              <button class="btn" id="scanB" onclick="scanFreq()">
+                <span>⟳ SCAN FREQ</span>
+              </button>
+              <button class="btn db" id="hideB" onclick="hideSignal()">
+                <span>◼ SILENT</span>
+              </button>
+              <button class="btn amb" id="boostB" onclick="boostSignal()">
+                <span>⚡ BOOST</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="power-ups" id="powerUps"></div>
+          <div class="sr">
+            <div class="sd" id="sdot"></div>
+            <span id="st">SIARAN AKTIF — MENUNGGU INPUT OPERATOR</span>
+            <span class="nv" id="nv">NOISE: 12%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="evt" id="evt"></div>
+
+      <div class="go" id="go">
+        <div class="got">SIGNAL LOST</div>
+        <div class="gos" id="goS">SINYAL TERKIRIM: 0</div>
+        <div class="goh" id="goH">HIGH SCORE: 0</div>
+        <div class="gom" id="goM">Mereka menemukanmu.</div>
+        <div class="achs" id="achList"></div>
+        <button
+          class="btn"
+          onclick="restartGame()"
+          style="margin-top: 10px; letter-spacing: 3px; min-width: 200px"
+        >
+          <span>▶ TRANSMIT AGAIN</span>
+        </button></div>
+      </div>
+      
+      <div class="go" id="upgradeShop">
+        <div class="got" style="color:var(--g); text-shadow:0 0 25px var(--g); font-size:48px;">UPGRADE SHOP</div>
+        <div class="gos" id="shopCredits">CREDITS: 0</div>
+        <div class="gom" id="shopDesc">Earn credits by playing!</div>
+        <div id="shopItems" class="achs"></div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn" onclick="closeUpgradeShop()" style="letter-spacing:3px; min-width:150px;"><span>✕ CLOSE</span></button>
+          <button class="btn amb" onclick="showStats()" style="letter-spacing:3px; min-width:150px;"><span>📊 STATS</span></button>
+        </div>
+      </div>
+
+      <script>
+        const MORSE = {
+          A: ".-",
+          B: "-...",
+          C: "-.-.",
+          D: "-..",
+          E: ".",
+          F: "..-.",
+          G: "--.",
+          H: "....",
+          I: "..",
+          J: ".---",
+          K: "-.-",
+          L: ".-..",
+          M: "--",
+          N: "-.",
+          O: "---",
+          P: ".--.",
+          Q: "--.-",
+          R: ".-.",
+          S: "...",
+          T: "-",
+          U: "..-",
+          V: "...-",
+          W: ".--",
+          X: "-..-",
+          Y: "-.--",
+          Z: "--..",
+          0: "-----",
+          1: ".----",
+          2: "..---",
+          3: "...--",
+          4: "....-",
+          5: ".....",
+          6: "-....",
+          7: "--...",
+          8: "---..",
+          9: "----.",
+        };
+
+        const LORE = [
+          "▶ ...tolong... ada di sini... jangan kirim ke koordinat lama...",
+          "▶ Stasiun 6-Bravo tidak merespons sejak malam ke-3.",
+          "▶ Mereka tidak suka sinyal kuat. Jangan terlalu sering.",
+          "▶ Operator sebelumnya mencatat: 'suara langkah di luar dinding'.",
+          "▶ Frekuensi 156.8 berulang kali memancarkan koordinat yang sama.",
+          "▶ Jangan percaya siapapun yang mengaku dari tim penyelamat.",
+          "▶ Log terakhir Operator #4: 'mereka tahu kita di sini'.",
+          "▶ Ada sesuatu yang mengikuti sinyal. Putuskan setelah transmisi.",
+          "▶ Kode ECHO-7 berarti evakuasi gagal. Teruslah siaran.",
+          "▶ Stasiun induk tidak pernah membalas. Tapi ada yang mendengar.",
+          "▶ Catatan ditemukan: 'bunyi di atap bukan hujan'.",
+          "▶ Jika interference mencapai 80%, matikan semua panel.",
+          "▶ Koordinat terakhir tim Alpha: -6.175, 106.827. Tidak ada jawaban.",
+          "▶ Signal kuat menarik perhatian. Berhati-hatilah.",
+          "▶ Mereka bergerak saat gelap. Transmisi malam hari berisiko tinggi.",
+          "▶ Operator terakhir meninggalkan pesan: 'JANGAN BUKA PINTU'.",
+          "▶ [CORRUPTED] ...freq...121...bantuan...sudah terlambat...",
+          "▶ Ada pola dalam noise. Mereka sedang berkomunikasi juga.",
+        ];
+
+        const EVENTS = [
+          {
+            msg: "⚡ BLACKOUT — Daya darurat aktif! Kirim segera!",
+            type: "warn-e",
+            noise: +20,
+            time: -5,
+          },
+          {
+            msg: "☢ JAMMING DETECTED — Sinyal diblokir musuh!",
+            type: "warn-e",
+            noise: +30,
+            time: 0,
+          },
+          {
+            msg: "🌧 INTERFERENCE SPIKE — Cuaca ekstrem terdeteksi!",
+            type: "warn-e",
+            noise: +15,
+            time: -3,
+          },
+          {
+            msg: "📡 RELAY STATION FOUND — Frekuensi baru tersedia!",
+            type: "",
+            noise: -20,
+            time: +5,
+          },
+          {
+            msg: "⚠ PROXIMITY ALERT — Mereka semakin dekat!",
+            type: "warn-e",
+            threat: +3,
+            noise: +10,
+          },
+          {
+            msg: "💀 SIGNAL TRACE — Lokasi hampir teridentifikasi!",
+            type: "warn-e",
+            noise: +25,
+            threat: +4,
+          },
+        ];
+
+        const FREQ_NAMES = {
+          121.5: "DISTRESS",
+          156.8: "MARINE",
+          "243.0": "MILITARY",
+          "406.0": "SATELLITE",
+          "518.0": "NAVTEX",
+          "2182.0": "INTL DISTRESS",
+        };
+
+        let score = 0,
+          hiScore = 0,
+          timeLeft = 15,
+          maxTime = 15,
+          gameActive = false,
+          timerInterval = null;
+        let noise = 12,
+          threat = 0,
+          loreIdx = 0,
+          silentCD = 0,
+          boostCD = 0,
+          freqIdx = 0;
+        let wave = 1,
+          combo = 0,
+          streak = 0,
+          multiplier = 1;
+        let scanCount = 0,
+          boostUsed = 0,
+          achievements = [];
+        let mmAngle = 0,
+          powerUps = [],
+          battery = 100;
+        let audioCtx = null,
+          staticOsc = null,
+          staticGain = null;
+        let totalSignalsSent = 0,
+          totalPlayTime = 0,
+          gamesPlayed = 0,
+          upgrades = {};
+        let incomingMorseActive = false,
+        incomingMorseTarget = "",
+        incomingMorseTimer = null,
+        incomingMorseTimeLeft = 0;
+      let credits = 0;
+      
+      const UPGRADES = [
+        {
+          id: "battery_capacity",
+          name: "🔋 BATTERY CAPACITY",
+          desc: "+50% battery capacity",
+          maxLevel: 5,
+          cost: 10,
+          costMultiplier: 1.8
+        },
+        {
+          id: "noise_reduction",
+          name: "🔇 NOISE REDUCTION",
+          desc: "-10% starting noise",
+          maxLevel: 5,
+          cost: 15,
+          costMultiplier: 2
+        },
+        {
+          id: "time_extension",
+          name: "⏱️ TIME EXTENSION",
+          desc: "+2s starting time",
+          maxLevel: 5,
+          cost: 12,
+          costMultiplier: 1.7
+        },
+        {
+          id: "powerup_chance",
+          name: "🎁 POWERUP CHANCE",
+          desc: "+10% chance for powerups",
+          maxLevel: 5,
+          cost: 20,
+          costMultiplier: 2.2
+        }
+      ];
+
+        const POWER_UPS = [
+          {
+            id: "repair",
+            name: "🔧 REPAIR",
+            desc: "Perbaiki baterai +30%",
+            rarity: "common",
+            effect: () => {
+              battery = Math.min(100, battery + 30);
+              updateBatteryUI();
+            },
+          },
+          {
+            id: "jammer",
+            name: "📡 JAMMER",
+            desc: "Kurangi threat -5",
+            rarity: "rare",
+            effect: () => {
+              threat = Math.max(0, threat - 5);
+            },
+          },
+          {
+            id: "timewarp",
+            name: "⏱ TIMEWARP",
+            desc: "Tambah waktu +10s",
+            rarity: "rare",
+            effect: () => {
+              timeLeft = Math.min(maxTime, timeLeft + 10);
+            },
+          },
+          {
+            id: "shield",
+            name: "🛡 SHIELD",
+            desc: "Noise ke 5%",
+            rarity: "epic",
+            effect: () => {
+              noise = 5;
+            },
+          },
+          {
+            id: "emp",
+            name: "⚡ EMP",
+            desc: "Multiplier x3 for 10s",
+            rarity: "epic",
+            effect: () => {
+              const old = multiplier;
+              multiplier = Math.min(10, 3);
+              setTimeout(() => (multiplier = old), 10000);
+            },
+          },
+        ];
+        const RARITY_WEIGHTS = { common: 60, rare: 30, epic: 10 };
+
+        try {
+          hiScore = parseInt(localStorage.getItem("sg_hi") || 0);
+          totalSignalsSent = parseInt(
+            localStorage.getItem("sg_totalSignals") || 0,
+          );
+          totalPlayTime = parseInt(
+            localStorage.getItem("sg_totalPlayTime") || 0,
+          );
+          gamesPlayed = parseInt(localStorage.getItem("sg_gamesPlayed") || 0);
+          upgrades = JSON.parse(localStorage.getItem("sg_upgrades") || "{}");
+          credits = parseInt(localStorage.getItem("sg_credits") || 0);
+        } catch (e) {}
+
+        const freqs = ["121.5", "156.8", "243.0", "406.0", "518.0", "2182.0"];
+
+        function toMorse(txt) {
+          return txt
+            .toUpperCase()
+            .split("")
+            .map((c) => {
+              if (c === " ") return "/";
+              return MORSE[c] || "";
+            })
+            .filter(Boolean)
+            .join(" ")
+            .substring(0, 80);
+        }
+
+        function initAudio() {
+          if (audioCtx) return;
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+          staticOsc = audioCtx.createOscillator();
+          staticGain = audioCtx.createGain();
+          staticOsc.type = "sawtooth";
+          staticOsc.frequency.value = 100;
+          staticGain.gain.value = 0;
+          staticOsc.connect(staticGain);
+          staticGain.connect(audioCtx.destination);
+          staticOsc.start();
+        }
+
+        function playBeep(freq = 800, duration = 0.1, type = "sine") {
+          if (!audioCtx) initAudio();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.value = freq;
+          gain.gain.value = 0.1;
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playSuccess() {
+          playBeep(880, 0.1);
+          setTimeout(() => playBeep(1100, 0.15), 100);
+        }
+
+        function playFail() {
+          playBeep(200, 0.2, "square");
+        }
+
+        function playAlert() {
+          playBeep(600, 0.1, "square");
+          setTimeout(() => playBeep(600, 0.1, "square"), 150);
+        }
+
+        function updateStaticLevel() {
+          if (staticGain) {
+            staticGain.gain.value = noise / 800;
+          }
+        }
+
+        function updateBatteryUI() {
+          const batteryUpgradeLevel = upgrades.battery_capacity || 0;
+          const maxBattery = 100 + (batteryUpgradeLevel * 50);
+          const batteryPercent = Math.min(100, Math.round((battery / maxBattery) * 100));
+          
+          const cells = document.querySelectorAll(
+            "#batteryCells .battery-cell",
+          );
+          const activeCells = Math.ceil(batteryPercent / 20);
+          cells.forEach((cell, i) => {
+            cell.className = "battery-cell";
+            if (i < activeCells) {
+              if (batteryPercent > 40) cell.classList.add("active");
+              else if (batteryPercent > 20) cell.classList.add("low");
+              else cell.classList.add("critical");
+            }
+          });
+          document.getElementById("batteryText").textContent =
+            Math.round(battery) + "/" + maxBattery;
+        }
+
+        function spawnPowerUp() {
+          if (powerUps.length >= 3) return;
+          
+          const powerupUpgradeLevel = upgrades.powerup_chance || 0;
+          const spawnChance = 0.7 + (powerupUpgradeLevel * 0.1);
+          if (Math.random() > spawnChance) return;
+          
+          const roll = Math.random() * 100;
+          let rarity = "common";
+          if (roll > 90 - (powerupUpgradeLevel * 5)) rarity = "epic";
+          else if (roll > 60 - (powerupUpgradeLevel * 5)) rarity = "rare";
+
+          const available = POWER_UPS.filter((p) => p.rarity === rarity);
+          const selected =
+            available[Math.floor(Math.random() * available.length)];
+
+          powerUps.push(selected);
+          renderPowerUps();
+          showEvent("✨ POWER-UP: " + selected.name, "");
+          playBeep(1200, 0.15);
+        }
+
+        function renderPowerUps() {
+          const container = document.getElementById("powerUps");
+          container.innerHTML = "";
+          powerUps.forEach((pu, idx) => {
+            const btn = document.createElement("button");
+            btn.className =
+              "power-up" +
+              (pu.rarity !== "common" ? " rarity-" + pu.rarity : "");
+            btn.textContent = pu.name;
+            btn.title = pu.desc;
+            btn.onclick = () => usePowerUp(idx);
+            container.appendChild(btn);
+          });
+        }
+
+        function usePowerUp(idx) {
+          if (!gameActive) return;
+          const pu = powerUps[idx];
+          pu.effect();
+          playSuccess();
+          addLog("[ POWER-UP ] " + pu.name + " used!", "ok");
+          powerUps.splice(idx, 1);
+          renderPowerUps();
+        }
+
+        function createParticles(x, y, count = 15, color = "var(--g)") {
+          const container = document.getElementById("particles");
+          for (let i = 0; i < count; i++) {
+            const particle = document.createElement("div");
+            particle.className = "particle";
+            particle.style.left = x + "px";
+            particle.style.top = y + "px";
+            particle.style.background = color;
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 30 + Math.random() * 70;
+            particle.style.setProperty(
+              "--tx",
+              Math.cos(angle) * distance + "px",
+            );
+            particle.style.setProperty(
+              "--ty",
+              Math.sin(angle) * distance + "px",
+            );
+            container.appendChild(particle);
+            setTimeout(() => particle.remove(), 800);
+          }
+        }
+
+        function triggerScreenShake(intensity = 1) {
+          const el = document.getElementById("screenShake");
+          el.classList.remove("screen-shake");
+          void el.offsetWidth; // Trigger reflow
+          el.classList.add("screen-shake");
+          if (intensity > 1) {
+            setTimeout(() => {
+              el.classList.remove("screen-shake");
+              void el.offsetWidth;
+              el.classList.add("screen-shake");
+            }, 100);
+          }
+        }
+
+        function saveStats() {
+        try {
+          localStorage.setItem("sg_totalSignals", totalSignalsSent);
+          localStorage.setItem("sg_totalPlayTime", totalPlayTime);
+          localStorage.setItem("sg_gamesPlayed", gamesPlayed);
+          localStorage.setItem("sg_upgrades", JSON.stringify(upgrades));
+          localStorage.setItem("sg_credits", credits);
+        } catch (e) {}
+        }
+
+        function getUpgradeValue(key, defaultValue = 0) {
+          return upgrades[key] || defaultValue;
+        }
+
+        function triggerRedFlash() {
+          const el = document.getElementById("screenShake");
+          el.classList.remove("red-flash");
+          void el.offsetWidth;
+          el.classList.add("red-flash");
+        }
+
+        // Morse Code Minigame Functions
+        const MORSE_WORDS = [
+          "SOS",
+          "HELP",
+          "MAYDAY",
+          "ALPHA",
+          "BRAVO",
+          "CHARLIE",
+          "DELTA",
+          "ECHO",
+          "FOXTROT",
+          "GOLF",
+          "HOTEL",
+          "INDIA",
+          "JULIETT",
+          "KILO",
+          "LIMA",
+          "MIKE",
+          "NOVEMBER",
+          "OSCAR",
+          "PAPA",
+          "QUEBEC",
+          "ROMEO",
+          "SIERRA",
+          "TANGO",
+          "UNIFORM",
+          "VICTOR",
+          "WHISKEY",
+          "XRAY",
+          "YANKEE",
+          "ZULU",
+        ];
+
+        function startIncomingMorse() {
+          if (!gameActive || incomingMorseActive) return;
+
+          incomingMorseActive = true;
+          incomingMorseTimeLeft = 15;
+          incomingMorseTarget =
+            MORSE_WORDS[Math.floor(Math.random() * MORSE_WORDS.length)];
+
+          document.getElementById("incomingMorseRow").style.display = "block";
+          document.getElementById("incomingMorse").textContent =
+            toMorse(incomingMorseTarget);
+          document.getElementById("morseAnswer").value = "";
+          document.getElementById("morseAnswer").focus();
+
+          incomingMorseTimer = setInterval(() => {
+            if (!incomingMorseActive) return;
+            incomingMorseTimeLeft -= 0.1;
+            document.getElementById("morseTimerBadge").textContent =
+              Math.ceil(incomingMorseTimeLeft) + "s";
+            if (incomingMorseTimeLeft <= 0) endIncomingMorse(false);
+          }, 100);
+
+          showEvent("📡 INCOMING MORSE SIGNAL! DECODE FAST!", "warn-e");
+          playAlert();
+        }
+
+        function endIncomingMorse(success) {
+          if (!incomingMorseActive) return;
+
+          incomingMorseActive = false;
+          clearInterval(incomingMorseTimer);
+          document.getElementById("incomingMorseRow").style.display = "none";
+
+          if (success) {
+            playSuccess();
+            score += 3;
+            document.getElementById("sd").textContent = score;
+            noise = Math.max(5, noise - 10);
+            showEvent("✅ MORSE DECODED! +3 SCORE, -10 NOISE", "");
+            createParticles(
+              window.innerWidth / 2,
+              window.innerHeight / 2,
+              25,
+              "var(--g)",
+            );
+          } else {
+            playFail();
+          }
+        }
+
+        function checkMorseAnswer() {
+          if (!incomingMorseActive) return;
+          const answer = document
+            .getElementById("morseAnswer")
+            .value.trim()
+            .toUpperCase();
+          if (answer === incomingMorseTarget) endIncomingMorse(true);
+        }
+        
+        // Upgrade Shop Functions
+        function getUpgradeCost(upgrade) {
+          const currentLevel = upgrades[upgrade.id] || 0;
+          return Math.floor(upgrade.cost * Math.pow(upgrade.costMultiplier, currentLevel));
+        }
+        
+        function openUpgradeShop() {
+          renderUpgradeShop();
+          document.getElementById("upgradeShop").classList.add("show");
+        }
+        
+        function closeUpgradeShop() {
+          document.getElementById("upgradeShop").classList.remove("show");
+        }
+        
+        function renderUpgradeShop() {
+          document.getElementById("shopCredits").textContent = "CREDITS: " + credits;
+          const container = document.getElementById("shopItems");
+          container.innerHTML = "";
+          UPGRADES.forEach(upgrade => {
+            const currentLevel = upgrades[upgrade.id] || 0;
+            const cost = getUpgradeCost(upgrade);
+            const canBuy = currentLevel < upgrade.maxLevel && credits >= cost;
+            
+            const div = document.createElement("div");
+            div.className = "ach";
+            div.style.borderColor = currentLevel >= upgrade.maxLevel ? "var(--a)" : "var(--g)";
+            div.style.color = currentLevel >= upgrade.maxLevel ? "var(--a)" : "var(--g)";
+            
+            div.innerHTML = `
+              <div style="font-weight:bold;">${upgrade.name} (LVL ${currentLevel}/${upgrade.maxLevel})</div>
+              <div style="font-size:10px; opacity:0.7;">${upgrade.desc}</div>
+              ${currentLevel < upgrade.maxLevel ? `<div style="margin-top:4px; font-size:11px;">COST: ${cost} CREDITS</div>` : "<div style='margin-top:4px; font-size:11px;'>✅ MAX LEVEL!</div>"}
+            `;
+            
+            if (canBuy) {
+              div.style.cursor = "pointer";
+              div.onclick = () => buyUpgrade(upgrade);
+            }
+            
+            container.appendChild(div);
+          });
+        }
+        
+        function buyUpgrade(upgrade) {
+          const cost = getUpgradeCost(upgrade);
+          const currentLevel = upgrades[upgrade.id] || 0;
+          if (credits >= cost && currentLevel < upgrade.maxLevel) {
+            credits -= cost;
+            upgrades[upgrade.id] = currentLevel + 1;
+            saveStats();
+            playSuccess();
+            renderUpgradeShop();
+          }
+        }
+        
+        function showStats() {
+          const statText = `📊 YOUR STATS:\n\n- Games Played: ${gamesPlayed}\n- Total Signals: ${totalSignalsSent}\n- Total Play Time: ${Math.floor(totalPlayTime / 60)}m ${Math.floor(totalPlayTime % 60)}s\n- High Score: ${hiScore}`;
+          alert(statText);
+        }
+
+        document.getElementById("mi").addEventListener("input", (e) => {
+          const m = toMorse(e.target.value);
+          document.getElementById("morseOut").textContent = m || "—";
+        });
+
+        document.getElementById("mi").addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendSignal();
+          }
+        });
+
+        document
+          .getElementById("morseAnswer")
+          .addEventListener("input", checkMorseAnswer);
+
+        function init() {
+          document.getElementById("hs").textContent = "BEST: " + hiScore;
+          gameActive = true;
+          initAudio();
+          updateBatteryUI();
+          updateThreatMap();
+          startTimer();
+          animateMeter();
+          setInterval(updateThreatMap, 2000);
+          setInterval(randomEvent, 18000);
+          setInterval(spawnPowerUp, 25000);
+          setInterval(updateStaticLevel, 100);
+          
+          const powerupUpgradeLevel = upgrades.powerup_chance || 0;
+          const morseChance = 0.15 + (powerupUpgradeLevel * 0.05);
+          setInterval(() => {
+            if (gameActive && Math.random() < morseChance) startIncomingMorse();
+          }, 20000);
+        }
+
+        function startTimer() {
+          clearInterval(timerInterval);
+          timerInterval = setInterval(tick, 100);
+        }
+
+        function tick() {
+          if (!gameActive) return;
+          timeLeft = Math.max(0, timeLeft - 0.1);
+          totalPlayTime += 0.1;
+          updateTimerUI();
+          noise = Math.min(95, noise + 0.04 + threat * 0.025 + wave * 0.01);
+          battery = Math.max(0, battery - 0.02 - threat * 0.005);
+          updateBatteryUI();
+          if (silentCD > 0) silentCD--;
+          if (boostCD > 0) boostCD--;
+          document.getElementById("hideB").disabled = silentCD > 0;
+          document.getElementById("boostB").disabled = boostCD > 0;
+          if (silentCD > 0) {
+            document.getElementById("hideB").querySelector("span").textContent =
+              "◼ " + Math.ceil(silentCD / 10) + "s";
+          } else {
+            document.getElementById("hideB").querySelector("span").textContent =
+              "◼ SILENT";
+          }
+          if (boostCD > 0) {
+            document
+              .getElementById("boostB")
+              .querySelector("span").textContent =
+              "⚡ " + Math.ceil(boostCD / 10) + "s";
+          } else {
+            document
+              .getElementById("boostB")
+              .querySelector("span").textContent = "⚡ BOOST";
+          }
+          updateNoise();
+          if (timeLeft <= 0) triggerEvent();
+          if (battery <= 0) {
+            document.querySelector(".hdr h1").classList.add("glitch");
+            setTimeout(
+              () =>
+                document.querySelector(".hdr h1").classList.remove("glitch"),
+              300,
+            );
+          }
+          // Random screen shake for high threat
+          if (threat > 10 && Math.random() < 0.05) {
+            triggerScreenShake(1);
+          }
+        }
+
+        function updateTimerUI() {
+          const pct = (timeLeft / maxTime) * 100;
+          const tf = document.getElementById("tf");
+          tf.style.width = pct + "%";
+          tf.className =
+            "tf" + (pct < 25 ? " danger" : pct < 55 ? " warn" : "");
+          document.getElementById("tsec").textContent =
+            Math.ceil(timeLeft) + "s";
+        }
+
+        function updateNoise() {
+          const lvl =
+            noise < 30
+              ? "LOW"
+              : noise < 60
+                ? "MED"
+                : noise < 80
+                  ? "HIGH"
+                  : "CRIT";
+          const nc =
+            noise < 30 ? "var(--a)" : noise < 60 ? "var(--a)" : "var(--r)";
+          const nl = document.getElementById("nl");
+          nl.textContent = lvl;
+          nl.style.color = nc;
+          document.getElementById("tl").textContent = threat;
+          document.getElementById("nv").textContent =
+            "NOISE: " + Math.round(noise) + "%";
+          document.getElementById("noise").style.opacity =
+            noise > 65 ? (noise - 65) / 120 : 0;
+          if (noise >= 95)
+            gameOver("Sinyal lo terlalu berisik. Mereka melacak lokasi eksak.");
+        }
+
+        function sendSignal() {
+          if (!gameActive) return;
+          const msg = document.getElementById("mi").value.trim();
+          if (!msg) {
+            addLog("[ ERROR: PESAN KOSONG — MASUKKAN DATA ]", "bad");
+            playFail();
+            triggerRedFlash();
+            return;
+          }
+          if (battery < 5) {
+            addLog("[ ERROR: BATERAI HABIS — GUNAKAN REPAIR KIT ]", "bad");
+            playFail();
+            triggerRedFlash();
+            return;
+          }
+          battery = Math.max(0, battery - 5);
+          updateBatteryUI();
+          const failChance = (noise / 200) * (1 / multiplier);
+          if (Math.random() < failChance) {
+            combo = 0;
+            streak = 0;
+            multiplier = 1;
+            updateCombo();
+            addLog(
+              "[ TX FAIL — INTERFERENCE: " + Math.round(noise) + "% ]",
+              "bad",
+            );
+            noise = Math.min(95, noise + 10);
+            threat = Math.min(20, threat + 1);
+            document.getElementById("mi").value = "";
+            setStatus("TRANSMISI GAGAL — COBA LAGI", "bad");
+            playFail();
+            triggerRedFlash();
+            triggerScreenShake(2);
+            return;
+          }
+          playSuccess();
+          const earned = 1 * multiplier;
+          score += earned;
+          totalSignalsSent++;
+          combo++;
+          streak++;
+          if (streak >= 3) multiplier = Math.min(5, 1 + Math.floor(streak / 3));
+          updateCombo();
+
+          const sdEl = document.getElementById("sd");
+          sdEl.textContent = score;
+          sdEl.style.animation = "scoreup 0.4s ease";
+          setTimeout(() => (sdEl.style.animation = ""), 400);
+
+          // Add combo glow and particles
+          if (combo >= 5) {
+            const comboEl = document.getElementById("comboDisp");
+            comboEl.classList.remove("combo-glow");
+            void comboEl.offsetWidth;
+            comboEl.classList.add("combo-glow");
+            triggerScreenShake(combo >= 10 ? 2 : 1);
+            createParticles(
+              window.innerWidth / 2,
+              window.innerHeight / 2,
+              10 + combo * 2,
+              combo >= 10 ? "var(--a)" : "var(--g)",
+            );
+          } else {
+            createParticles(window.innerWidth / 2, window.innerHeight / 2);
+          }
+
+          addLog(
+            "[ TX OK x" +
+              multiplier +
+              " ] " +
+              msg.substring(0, 35) +
+              (msg.length > 35 ? "..." : ""),
+            "ok",
+          );
+          document.getElementById("mi").value = "";
+          document.getElementById("morseOut").textContent = "—";
+          noise = Math.max(5, noise - 4);
+          threat = Math.min(20, threat + (score % 5 === 0 ? 2 : 0));
+          timeLeft = maxTime;
+          if (score > hiScore) {
+            hiScore = score;
+            try {
+              localStorage.setItem("sg_hi", hiScore);
+            } catch (e) {}
+            document.getElementById("hs").textContent = "BEST: " + hiScore;
+          }
+          if (score % 3 === 0) revealLore();
+          if (score >= 5 && score % 5 === 0) {
+            maxTime = Math.max(7, maxTime - 0.4);
+          }
+          if (score % 10 === 0) {
+            wave++;
+            document.getElementById("waveDisp").textContent = "W" + wave;
+            showEvent("🌊 WAVE " + wave + " — ANCAMAN MENINGKAT!", "warn-e");
+          }
+          checkAchievements();
+          setStatus("TX DITERIMA [+" + earned + "] — TERUSKAN SIARAN", "ok");
+        }
+
+        function updateCombo() {
+          document.getElementById("comboDisp").textContent = combo + "x";
+          document.getElementById("streakDisp").textContent = streak;
+          document.getElementById("mulDisp").textContent = "x" + multiplier;
+        }
+
+        function scanFreq() {
+          if (!gameActive) return;
+          freqIdx = (freqIdx + 1) % freqs.length;
+          const f = freqs[freqIdx];
+          document.getElementById("fd").textContent = f;
+          const badge = document.getElementById("freqBadge");
+          badge.textContent = FREQ_NAMES[f] || "UNKNOWN";
+          noise = Math.max(5, noise - 18);
+          scanCount++;
+          addLog(
+            "[ SCAN ] Pindah ke " + f + " MHz (" + FREQ_NAMES[f] + ")",
+            "sys",
+          );
+          setStatus("FREKUENSI: " + f + " MHz", "sys");
+        }
+
+        function hideSignal() {
+          if (!gameActive || silentCD > 0) return;
+          noise = Math.max(5, noise - 28);
+          threat = Math.max(0, threat - 3);
+          combo = 0;
+          multiplier = 1;
+          updateCombo();
+          silentCD = 70;
+          addLog("[ SILENT MODE ] Sinyal dimatikan — combo reset", "warn");
+          setStatus("MODE SENYAP AKTIF", "warn");
+          playBeep(400, 0.2);
+        }
+
+        function boostSignal() {
+          if (!gameActive || boostCD > 0) return;
+          const msg = document.getElementById("mi").value.trim();
+          if (!msg) {
+            addLog("[ ERROR: BOOST BUTUH PESAN ]", "bad");
+            playFail();
+            return;
+          }
+          boostUsed++;
+          boostCD = 100;
+          const old = multiplier;
+          multiplier = Math.min(10, multiplier + 2);
+          addLog("[ BOOST ] Multiplier sementara: x" + multiplier, "warn");
+          setTimeout(() => {
+            multiplier = Math.max(1, multiplier - 2);
+            updateCombo();
+          }, 5000);
+          playBeep(1000, 0.1);
+          sendSignal();
+        }
+
+        function triggerEvent() {
+          const roll = Math.random();
+          const mod = threat / 20 + wave * 0.03;
+          if (roll < 0.13 + mod) {
+            gameOver("Waktu habis. Mereka masuk sebelum bantuan tiba.");
+          } else if (roll < 0.32) {
+            addLog("[ DARURAT ] Sinyal melemah kritis!", "bad");
+            timeLeft = 5;
+            noise = Math.min(92, noise + 18);
+            setStatus("DARURAT KRITIS — KIRIM SEKARANG", "bad");
+            document.getElementById("noise").style.opacity = 0.4;
+            playAlert();
+          } else {
+            timeLeft = maxTime;
+            noise = Math.min(80, noise + 6);
+            addLog("[ SPIKE ] Interference terdeteksi", "warn");
+            playBeep(500, 0.1);
+          }
+        }
+
+        function randomEvent() {
+          if (!gameActive) return;
+          const ev = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+          showEvent(ev.msg, ev.type);
+          if (ev.noise) noise = Math.min(95, Math.max(5, noise + ev.noise));
+          if (ev.time)
+            timeLeft = Math.min(maxTime, Math.max(2, timeLeft + ev.time));
+          if (ev.threat) threat = Math.min(20, threat + ev.threat);
+          addLog(
+            "[ EVENT ] " + ev.msg.replace(/[⚡☢🌧📡⚠💀]/g, "").trim(),
+            "warn",
+          );
+        }
+
+        function showEvent(msg, type) {
+          const el = document.getElementById("evt");
+          el.textContent = msg;
+          el.className = "evt show" + (type ? " " + type : "");
+          if (type) playAlert();
+          setTimeout(() => (el.className = "evt"), 4000);
+        }
+
+        function revealLore() {
+          if (loreIdx >= LORE.length) return;
+          const box = document.getElementById("lb");
+          const p = document.createElement("p");
+          const isAlert = loreIdx > 10;
+          p.className = isAlert ? "alert" : "new";
+          p.textContent = LORE[loreIdx++];
+          box.appendChild(p);
+          box.scrollTop = box.scrollHeight;
+          document.getElementById("loreCount").textContent = loreIdx;
+        }
+
+        function addLog(msg, type) {
+          const box = document.getElementById("logb");
+          const d = document.createElement("div");
+          d.className = "le " + (type || "sys");
+          const t = new Date();
+          const ts =
+            String(t.getHours()).padStart(2, "0") +
+            ":" +
+            String(t.getMinutes()).padStart(2, "0") +
+            ":" +
+            String(t.getSeconds()).padStart(2, "0");
+          d.textContent = "[" + ts + "] " + msg;
+          box.appendChild(d);
+          box.scrollTop = box.scrollHeight;
+          if (box.children.length > 50) box.removeChild(box.children[0]);
+        }
+
+        function setStatus(msg, type) {
+          const dot = document.getElementById("sdot");
+          document.getElementById("st").textContent = msg;
+          dot.className =
+            "sd" + (type === "bad" ? " dead" : type === "warn" ? " idle" : "");
+        }
+
+        function updateThreatMap() {
+          if (!gameActive) return;
+          mmAngle += 0.15;
+          const you = {
+            x: 48 + Math.sin(mmAngle * 0.3) * 8,
+            y: 48 + Math.cos(mmAngle * 0.2) * 6,
+          };
+          document.getElementById("mmYou").style.left = you.x + "%";
+          document.getElementById("mmYou").style.top = you.y + "%";
+          const dist = Math.round(
+            Math.sqrt(Math.pow(you.x - 30, 2) + Math.pow(you.y - 25, 2)) * 0.8,
+          );
+          document.getElementById("mmDist").textContent =
+            "BASE: " + dist + "km";
+          const t1 = document.getElementById("mmT1");
+          const t2 = document.getElementById("mmT2");
+          if (threat >= 5) {
+            t1.style.display = "block";
+            t1.style.left = 70 + Math.sin(mmAngle * 0.5) * 15 + "%";
+            t1.style.top = 65 + Math.cos(mmAngle * 0.4) * 10 + "%";
+          }
+          if (threat >= 12) {
+            t2.style.display = "block";
+            t2.style.left = 15 + Math.sin(mmAngle * 0.7) * 12 + "%";
+            t2.style.top = 75 + Math.cos(mmAngle * 0.6) * 8 + "%";
+          }
+        }
+
+        function checkAchievements() {
+          const ach = [];
+          if (score >= 10 && !achievements.includes("A1")) {
+            achievements.push("A1");
+            ach.push("10 SINYAL");
+          }
+          if (streak >= 5 && !achievements.includes("A2")) {
+            achievements.push("A2");
+            ach.push("STREAK 5");
+          }
+          if (multiplier >= 3 && !achievements.includes("A3")) {
+            achievements.push("A3");
+            ach.push("3x MULTIPLIER");
+          }
+          if (wave >= 3 && !achievements.includes("A4")) {
+            achievements.push("A4");
+            ach.push("WAVE 3");
+          }
+          if (boostUsed >= 3 && !achievements.includes("A5")) {
+            achievements.push("A5");
+            ach.push("3x BOOST");
+          }
+          if (scanCount >= 10 && !achievements.includes("A6")) {
+            achievements.push("A6");
+            ach.push("SCANNER");
+          }
+          ach.forEach((a) => showEvent("🏆 ACHIEVEMENT: " + a, ""));
+        }
+
+        function gameOver(reason) {
+          gameActive = false;
+          clearInterval(timerInterval);
+          gamesPlayed++;
+          // Award credits based on score
+          const earnedCredits = Math.floor(score / 2);
+          credits += earnedCredits;
+          if (earnedCredits > 0) {
+            showEvent(`💰 +${earnedCredits} CREDITS EARNED!`, "");
+          }
+          saveStats();
+          const go = document.getElementById("go");
+          go.classList.add("show");
+          document.getElementById("goS").textContent =
+            "SINYAL TERKIRIM: " + score;
+          document.getElementById("goH").textContent = "HIGH SCORE: " + hiScore;
+          document.getElementById("goM").textContent = reason;
+          const achEl = document.getElementById("achList");
+          achEl.innerHTML = "";
+          achievements.forEach((id) => {
+            const labels = {
+              A1: "10 SINYAL",
+              A2: "STREAK 5",
+              A3: "3x MULTI",
+              A4: "WAVE 3",
+              A5: "BOOSTER",
+              A6: "SCANNER",
+            };
+            const span = document.createElement("span");
+            span.className = "ach";
+            span.textContent = "★ " + (labels[id] || id);
+            achEl.appendChild(span);
+          });
+          document.getElementById("sdot").className = "sd dead";
+          triggerScreenShake(3);
+          triggerRedFlash();
+        }
+
+        function restartGame() {
+          score = 0;
+          // Apply upgrades
+          const timeUpgradeLevel = upgrades.time_extension || 0;
+          const noiseUpgradeLevel = upgrades.noise_reduction || 0;
+          
+          timeLeft = 15 + (timeUpgradeLevel * 2);
+          maxTime = 15 + (timeUpgradeLevel * 2);
+          noise = Math.max(2, 12 - (noiseUpgradeLevel * 10));
+          threat = 0;
+          loreIdx = 0;
+          silentCD = 0;
+          boostCD = 0;
+          freqIdx = 0;
+          wave = 1;
+          combo = 0;
+          streak = 0;
+          multiplier = 1;
+          scanCount = 0;
+          boostUsed = 0;
+          achievements = [];
+          mmAngle = 0;
+          
+          const batteryUpgradeLevel = upgrades.battery_capacity || 0;
+          // Battery capacity upgrade is 50% per level, so start higher
+          battery = 100 + (batteryUpgradeLevel * 50);
+          powerUps = [];
+          incomingMorseActive = false;
+          if (incomingMorseTimer) clearInterval(incomingMorseTimer);
+          document.getElementById("sd").textContent = "0";
+          document.getElementById("fd").textContent = "121.5";
+          document.getElementById("hs").textContent = "BEST: " + hiScore;
+          document.getElementById("freqBadge").textContent = "DISTRESS";
+          document.getElementById("waveDisp").textContent = "W1";
+          document.getElementById("comboDisp").textContent = "0x";
+          document.getElementById("streakDisp").textContent = "0";
+          document.getElementById("mulDisp").textContent = "x1";
+          document.getElementById("morseOut").textContent = "—";
+          document.getElementById("go").classList.remove("show");
+          document.getElementById("logb").innerHTML =
+            '<div class="le sys">[ REBOOT — SISTEM AKTIF KEMBALI ]</div>';
+          document.getElementById("lb").innerHTML =
+            '<p class="new">▶ Stasiun 7-Alpha diaktifkan. Cari bantuan segera.</p>';
+          document.getElementById("loreCount").textContent = "0";
+          document.getElementById("mi").value = "";
+          document.getElementById("noise").style.opacity = 0;
+          document.getElementById("mmT1").style.display = "none";
+          document.getElementById("mmT2").style.display = "none";
+          document.getElementById("hideB").disabled = false;
+          document.getElementById("boostB").disabled = false;
+          updateBatteryUI();
+          renderPowerUps();
+          document.getElementById("incomingMorseRow").style.display = "none";
+          gameActive = true;
+          startTimer();
+          setStatus("SIARAN AKTIF — MENUNGGU INPUT OPERATOR", "ok");
+        }
+
+        function animateMeter() {
+          const bars = document.querySelectorAll(".bar");
+          setInterval(() => {
+            bars.forEach((b) => {
+              const h = Math.random() * 80 + 10;
+              b.style.height = h + "%";
+              b.style.background =
+                noise > 70 ? "var(--r)" : noise > 40 ? "var(--a)" : "var(--g)";
+            });
+          }, 100);
+        }
+
+        init();
+      </script>
+    </div>
+  </body>
+</html>
