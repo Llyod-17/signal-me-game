@@ -9,7 +9,8 @@
         margin: 0;
         padding: 0;
       }
-      :root {
+      :root,
+      .theme-green {
         --g: #39ff14;
         --gd: #1a7a09;
         --gdk: #0d3d04;
@@ -20,6 +21,39 @@
         --bdr: #0e2a1a;
         --td: #1f6b10;
         --font: "Share Tech Mono", monospace;
+      }
+      .theme-red {
+        --g: #ff3333;
+        --gd: #7a0909;
+        --gdk: #3d0404;
+        --r: #39ff14;
+        --a: #ff00d4;
+        --bg: #0a0404;
+        --panel: #100707;
+        --bdr: #2a0e0e;
+        --td: #6b1010;
+      }
+      .theme-blue {
+        --g: #00d4ff;
+        --gd: #094a7a;
+        --gdk: #04283d;
+        --r: #ff3333;
+        --a: #00ffb7;
+        --bg: #04060a;
+        --panel: #070810;
+        --bdr: #0e1a2a;
+        --td: #103d6b;
+      }
+      .theme-orange {
+        --g: #ff8800;
+        --gd: #7a3d09;
+        --gdk: #3d1f04;
+        --r: #ff3333;
+        --a: #ffff00;
+        --bg: #0a0604;
+        --panel: #100907;
+        --bdr: #2a1a0e;
+        --td: #6b3d10;
       }
       body {
         background: var(--bg);
@@ -899,14 +933,38 @@
             "
           >
             <div class="version">v2.0 // CLASSIFIED</div>
-            <button
-              class="btn"
-              id="upgradeBtn"
-              onclick="openUpgradeShop()"
-              style="padding: 4px 10px; font-size: 10px; letter-spacing: 1px"
-            >
-              <span>🔧 UPGRADES</span>
-            </button>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <div style="font-size: 10px; opacity: 0.7">DIFFICULTY:</div>
+              <button
+                class="btn"
+                onclick="changeDifficulty('easy')"
+                style="padding: 2px 8px; font-size: 10px"
+              >
+                <span>EASY</span>
+              </button>
+              <button
+                class="btn"
+                onclick="changeDifficulty('normal')"
+                style="padding: 2px 8px; font-size: 10px"
+              >
+                <span>NORMAL</span>
+              </button>
+              <button
+                class="btn"
+                onclick="changeDifficulty('hard')"
+                style="padding: 2px 8px; font-size: 10px"
+              >
+                <span>HARD</span>
+              </button>
+              <button
+                class="btn"
+                id="upgradeBtn"
+                onclick="openUpgradeShop()"
+                style="padding: 4px 10px; font-size: 10px; letter-spacing: 1px"
+              >
+                <span>🔧 UPGRADES</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1123,10 +1181,52 @@
 
       <div class="evt" id="evt"></div>
 
+      <div class="go" id="tutorial">
+        <div
+          class="got"
+          style="
+            color: var(--g);
+            text-shadow: 0 0 25px var(--g);
+            font-size: 36px;
+          "
+        >
+          TUTORIAL SINGKAT
+        </div>
+        <div
+          style="
+            margin: 20px 0;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.8;
+          "
+        >
+          1. Ketik pesan darurat di kolom input, lalu klik "TRANSMIT" untuk
+          kirim sinyal.<br />
+          2. Setiap kiriman mengurangi baterai dan bisa meningkatkan ancaman
+          jika terlalu sering.<br />
+          3. "SCAN FREQ" untuk ganti frekuensi dengan kemampuan unik.<br />
+          4. "SILENT" untuk mengurangi ancaman (cooldown).<br />
+          5. "BOOST" untuk meningkatkan multiplier (cooldown).<br />
+          6. Power-up bisa didapat secara acak, klik untuk gunakan.<br />
+          7. Jika ada incoming morse, decode jawaban untuk bonus!
+        </div>
+        <button
+          class="btn"
+          onclick="closeTutorial()"
+          style="margin-top: 10px; letter-spacing: 3px; min-width: 200px"
+        >
+          <span>▶ MULAI BERMAIN</span>
+        </button>
+      </div>
+
       <div class="go" id="go">
         <div class="got">SIGNAL LOST</div>
         <div class="gos" id="goS">SINYAL TERKIRIM: 0</div>
         <div class="goh" id="goH">HIGH SCORE: 0</div>
+        <div
+          id="goStats"
+          style="font-size: 13px; margin: 10px 0; opacity: 0.8"
+        ></div>
         <div class="gom" id="goM">Mereka menemukanmu.</div>
         <div class="achs" id="achList"></div>
         <button
@@ -1135,17 +1235,38 @@
           style="margin-top: 10px; letter-spacing: 3px; min-width: 200px"
         >
           <span>▶ TRANSMIT AGAIN</span>
-        </button></div>
+        </button>
       </div>
-      
+
       <div class="go" id="upgradeShop">
-        <div class="got" style="color:var(--g); text-shadow:0 0 25px var(--g); font-size:48px;">UPGRADE SHOP</div>
+        <div
+          class="got"
+          style="
+            color: var(--g);
+            text-shadow: 0 0 25px var(--g);
+            font-size: 48px;
+          "
+        >
+          UPGRADE SHOP
+        </div>
         <div class="gos" id="shopCredits">CREDITS: 0</div>
         <div class="gom" id="shopDesc">Earn credits by playing!</div>
         <div id="shopItems" class="achs"></div>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <button class="btn" onclick="closeUpgradeShop()" style="letter-spacing:3px; min-width:150px;"><span>✕ CLOSE</span></button>
-          <button class="btn amb" onclick="showStats()" style="letter-spacing:3px; min-width:150px;"><span>📊 STATS</span></button>
+        <div style="display: flex; gap: 10px; margin-top: 10px">
+          <button
+            class="btn"
+            onclick="closeUpgradeShop()"
+            style="letter-spacing: 3px; min-width: 150px"
+          >
+            <span>✕ CLOSE</span>
+          </button>
+          <button
+            class="btn amb"
+            onclick="showStats()"
+            style="letter-spacing: 3px; min-width: 150px"
+          >
+            <span>📊 STATS</span>
+          </button>
         </div>
       </div>
 
@@ -1208,6 +1329,21 @@
           "▶ Operator terakhir meninggalkan pesan: 'JANGAN BUKA PINTU'.",
           "▶ [CORRUPTED] ...freq...121...bantuan...sudah terlambat...",
           "▶ Ada pola dalam noise. Mereka sedang berkomunikasi juga.",
+          "▶ Frekuensi 2182 disarankan untuk pesan rahasia.",
+          "▶ Suara bising di radio berarti mereka mendekat.",
+          "▶ Stasiun 5-Delta melaporkan 'penglihatan' sebelum offline.",
+          "▶ Catatan kuno: 'semua yang mati tidak tinggal mati'.",
+          "▶ Jangan terlalu fokus pada score, fokus bertahan.",
+          "▶ Kadang, mereka meniru suara operator lain.",
+          "▶ Interferensi adalah satu-satunya cara tahu mereka dekat.",
+          "▶ Frekuensi 406 sering dipakai untuk memanggil bantuan.",
+          "▶ Setiap wave baru, ancaman menjadi lebih cepat.",
+          "▶ Ada pesan terenkripsi: 'kunci di frekuensi MILITARY'",
+          "▶ Jangan pernah gunakan BOOST dua kali berturut-turut.",
+          "▶ Power-up adalah hadiah dari stasiun lain.",
+          "▶ Jika kamu mendengar bip tiga kali, matikan radio.",
+          "▶ Catatan terakhir dari Stasiun 9-Charlie: 'kita tidak sendiri'.",
+          "▶ Hari-hari terakhir: mereka bisa menembus dinding.",
         ];
 
         const EVENTS = [
@@ -1288,45 +1424,75 @@
           gamesPlayed = 0,
           upgrades = {};
         let incomingMorseActive = false,
-        incomingMorseTarget = "",
-        incomingMorseTimer = null,
-        incomingMorseTimeLeft = 0;
-      let credits = 0;
-      
-      const UPGRADES = [
-        {
-          id: "battery_capacity",
-          name: "🔋 BATTERY CAPACITY",
-          desc: "+50% battery capacity",
-          maxLevel: 5,
-          cost: 10,
-          costMultiplier: 1.8
-        },
-        {
-          id: "noise_reduction",
-          name: "🔇 NOISE REDUCTION",
-          desc: "-10% starting noise",
-          maxLevel: 5,
-          cost: 15,
-          costMultiplier: 2
-        },
-        {
-          id: "time_extension",
-          name: "⏱️ TIME EXTENSION",
-          desc: "+2s starting time",
-          maxLevel: 5,
-          cost: 12,
-          costMultiplier: 1.7
-        },
-        {
-          id: "powerup_chance",
-          name: "🎁 POWERUP CHANCE",
-          desc: "+10% chance for powerups",
-          maxLevel: 5,
-          cost: 20,
-          costMultiplier: 2.2
-        }
-      ];
+          incomingMorseTarget = "",
+          incomingMorseTimer = null,
+          incomingMorseTimeLeft = 0;
+        let credits = 0;
+        let stealthActive = false,
+          stealthEndTime = 0,
+          maxCombo = 0,
+          maxWave = 1,
+          powerupsUsed = 0,
+          firstPlay = true,
+          currentDifficulty = "normal";
+        let leaderboard = [];
+
+        const THEMES = [
+          {
+            id: "theme-green",
+            name: "🌿 GREEN (DEFAULT)",
+            unlocked: true,
+            cost: 0,
+          },
+          { id: "theme-red", name: "🔴 RED ALERT", unlocked: false, cost: 30 },
+          {
+            id: "theme-blue",
+            name: "🔵 CYBER BLUE",
+            unlocked: false,
+            cost: 40,
+          },
+          {
+            id: "theme-orange",
+            name: "🟠 NEON ORANGE",
+            unlocked: false,
+            cost: 50,
+          },
+        ];
+
+        const UPGRADES = [
+          {
+            id: "battery_capacity",
+            name: "🔋 BATTERY CAPACITY",
+            desc: "+50% battery capacity",
+            maxLevel: 5,
+            cost: 10,
+            costMultiplier: 1.8,
+          },
+          {
+            id: "noise_reduction",
+            name: "🔇 NOISE REDUCTION",
+            desc: "-10% starting noise",
+            maxLevel: 5,
+            cost: 15,
+            costMultiplier: 2,
+          },
+          {
+            id: "time_extension",
+            name: "⏱️ TIME EXTENSION",
+            desc: "+2s starting time",
+            maxLevel: 5,
+            cost: 12,
+            costMultiplier: 1.7,
+          },
+          {
+            id: "powerup_chance",
+            name: "🎁 POWERUP CHANCE",
+            desc: "+10% chance for powerups",
+            maxLevel: 5,
+            cost: 20,
+            costMultiplier: 2.2,
+          },
+        ];
 
         const POWER_UPS = [
           {
@@ -1377,8 +1543,44 @@
               setTimeout(() => (multiplier = old), 10000);
             },
           },
+          {
+            id: "stealth",
+            name: "🕵️ STEALTH",
+            desc: "Threat ke 0 untuk 15 detik!",
+            rarity: "rare",
+            effect: () => {
+              threat = 0;
+              stealthActive = true;
+              stealthEndTime = Date.now() + 15000;
+            },
+          },
+          {
+            id: "double",
+            name: "🏆 DOUBLE TROUBLE",
+            desc: "Semua score x2 untuk 20 detik!",
+            rarity: "epic",
+            effect: () => {
+              const old = multiplier;
+              multiplier = Math.min(10, old * 2);
+              setTimeout(() => (multiplier = Math.max(1, old)), 20000);
+            },
+          },
+          {
+            id: "heal",
+            name: "❤️ FULL HEAL",
+            desc: "Baterai ke FULL!",
+            rarity: "rare",
+            effect: () => {
+              const batteryUpgradeLevel = upgrades.battery_capacity || 0;
+              battery = 100 + batteryUpgradeLevel * 50;
+              updateBatteryUI();
+            },
+          },
         ];
         const RARITY_WEIGHTS = { common: 60, rare: 30, epic: 10 };
+
+        let currentTheme = "theme-green";
+        let unlockedThemes = ["theme-green"];
 
         try {
           hiScore = parseInt(localStorage.getItem("sg_hi") || 0);
@@ -1391,6 +1593,18 @@
           gamesPlayed = parseInt(localStorage.getItem("sg_gamesPlayed") || 0);
           upgrades = JSON.parse(localStorage.getItem("sg_upgrades") || "{}");
           credits = parseInt(localStorage.getItem("sg_credits") || 0);
+          achievements = JSON.parse(
+            localStorage.getItem("sg_achievements") || "[]",
+          );
+          currentTheme = localStorage.getItem("sg_theme") || "theme-green";
+          unlockedThemes = JSON.parse(
+            localStorage.getItem("sg_themes") || ["theme-green"],
+          );
+          firstPlay = localStorage.getItem("sg_firstPlay") !== "false";
+          leaderboard = JSON.parse(
+            localStorage.getItem("sg_leaderboard") || "[]",
+          );
+          currentDifficulty = localStorage.getItem("sg_difficulty") || "normal";
         } catch (e) {}
 
         const freqs = ["121.5", "156.8", "243.0", "406.0", "518.0", "2182.0"];
@@ -1457,9 +1671,12 @@
 
         function updateBatteryUI() {
           const batteryUpgradeLevel = upgrades.battery_capacity || 0;
-          const maxBattery = 100 + (batteryUpgradeLevel * 50);
-          const batteryPercent = Math.min(100, Math.round((battery / maxBattery) * 100));
-          
+          const maxBattery = 100 + batteryUpgradeLevel * 50;
+          const batteryPercent = Math.min(
+            100,
+            Math.round((battery / maxBattery) * 100),
+          );
+
           const cells = document.querySelectorAll(
             "#batteryCells .battery-cell",
           );
@@ -1478,15 +1695,15 @@
 
         function spawnPowerUp() {
           if (powerUps.length >= 3) return;
-          
+
           const powerupUpgradeLevel = upgrades.powerup_chance || 0;
-          const spawnChance = 0.7 + (powerupUpgradeLevel * 0.1);
+          const spawnChance = 0.7 + powerupUpgradeLevel * 0.1;
           if (Math.random() > spawnChance) return;
-          
+
           const roll = Math.random() * 100;
           let rarity = "common";
-          if (roll > 90 - (powerupUpgradeLevel * 5)) rarity = "epic";
-          else if (roll > 60 - (powerupUpgradeLevel * 5)) rarity = "rare";
+          if (roll > 90 - powerupUpgradeLevel * 5) rarity = "epic";
+          else if (roll > 60 - powerupUpgradeLevel * 5) rarity = "rare";
 
           const available = POWER_UPS.filter((p) => p.rarity === rarity);
           const selected =
@@ -1517,6 +1734,7 @@
           if (!gameActive) return;
           const pu = powerUps[idx];
           pu.effect();
+          powerupsUsed++;
           playSuccess();
           addLog("[ POWER-UP ] " + pu.name + " used!", "ok");
           powerUps.splice(idx, 1);
@@ -1561,13 +1779,34 @@
         }
 
         function saveStats() {
-        try {
-          localStorage.setItem("sg_totalSignals", totalSignalsSent);
-          localStorage.setItem("sg_totalPlayTime", totalPlayTime);
-          localStorage.setItem("sg_gamesPlayed", gamesPlayed);
-          localStorage.setItem("sg_upgrades", JSON.stringify(upgrades));
-          localStorage.setItem("sg_credits", credits);
-        } catch (e) {}
+          try {
+            localStorage.setItem("sg_totalSignals", totalSignalsSent);
+            localStorage.setItem("sg_totalPlayTime", totalPlayTime);
+            localStorage.setItem("sg_gamesPlayed", gamesPlayed);
+            localStorage.setItem("sg_upgrades", JSON.stringify(upgrades));
+            localStorage.setItem("sg_credits", credits);
+            localStorage.setItem(
+              "sg_achievements",
+              JSON.stringify(achievements),
+            );
+            localStorage.setItem("sg_theme", currentTheme);
+            localStorage.setItem("sg_themes", JSON.stringify(unlockedThemes));
+            localStorage.setItem("sg_firstPlay", "false");
+            localStorage.setItem("sg_leaderboard", JSON.stringify(leaderboard));
+            localStorage.setItem("sg_difficulty", currentDifficulty);
+          } catch (e) {}
+        }
+
+        function openTutorial() {
+          document.getElementById("tutorial").classList.add("show");
+        }
+
+        function closeTutorial() {
+          firstPlay = false;
+          saveStats();
+          document.getElementById("tutorial").classList.remove("show");
+          gameActive = true;
+          startTimer();
         }
 
         function getUpgradeValue(key, defaultValue = 0) {
@@ -1617,6 +1856,23 @@
         function startIncomingMorse() {
           if (!gameActive || incomingMorseActive) return;
 
+          let countdown = 3;
+          const countInterval = setInterval(() => {
+            if (countdown > 0) {
+              showEvent(
+                "📡 INCOMING MORSE SIGNAL IN " + countdown + "...",
+                "warn-e",
+              );
+              countdown--;
+            } else {
+              clearInterval(countInterval);
+              actuallyStartMorseGame();
+            }
+          }, 1000);
+        }
+
+        function actuallyStartMorseGame() {
+          if (!gameActive) return;
           incomingMorseActive = true;
           incomingMorseTimeLeft = 15;
           incomingMorseTarget =
@@ -1661,6 +1917,10 @@
             );
           } else {
             playFail();
+            showEvent(
+              "❌ MORSE FAILED! Jawaban: " + incomingMorseTarget,
+              "bad",
+            );
           }
         }
 
@@ -1670,53 +1930,128 @@
             .getElementById("morseAnswer")
             .value.trim()
             .toUpperCase();
+          if (answer.length > 0 && !incomingMorseTarget.startsWith(answer)) {
+            // Wrong answer feedback!
+            playFail();
+            triggerRedFlash();
+            addLog("[ WARNING ] Morse jawaban salah!", "warn");
+          }
           if (answer === incomingMorseTarget) endIncomingMorse(true);
         }
-        
+
         // Upgrade Shop Functions
         function getUpgradeCost(upgrade) {
           const currentLevel = upgrades[upgrade.id] || 0;
-          return Math.floor(upgrade.cost * Math.pow(upgrade.costMultiplier, currentLevel));
+          return Math.floor(
+            upgrade.cost * Math.pow(upgrade.costMultiplier, currentLevel),
+          );
         }
-        
+
         function openUpgradeShop() {
           renderUpgradeShop();
           document.getElementById("upgradeShop").classList.add("show");
         }
-        
+
         function closeUpgradeShop() {
           document.getElementById("upgradeShop").classList.remove("show");
         }
-        
+
         function renderUpgradeShop() {
-          document.getElementById("shopCredits").textContent = "CREDITS: " + credits;
+          document.getElementById("shopCredits").textContent =
+            "CREDITS: " + credits;
           const container = document.getElementById("shopItems");
           container.innerHTML = "";
-          UPGRADES.forEach(upgrade => {
+
+          // First show upgrades
+          const upgradeHeader = document.createElement("div");
+          upgradeHeader.style.fontSize = "14px";
+          upgradeHeader.style.marginBottom = "8px";
+          upgradeHeader.textContent = "🛠️ UPGRADES";
+          container.appendChild(upgradeHeader);
+
+          UPGRADES.forEach((upgrade) => {
             const currentLevel = upgrades[upgrade.id] || 0;
             const cost = getUpgradeCost(upgrade);
             const canBuy = currentLevel < upgrade.maxLevel && credits >= cost;
-            
+
             const div = document.createElement("div");
             div.className = "ach";
-            div.style.borderColor = currentLevel >= upgrade.maxLevel ? "var(--a)" : "var(--g)";
-            div.style.color = currentLevel >= upgrade.maxLevel ? "var(--a)" : "var(--g)";
-            
+            div.style.borderColor =
+              currentLevel >= upgrade.maxLevel ? "var(--a)" : "var(--g)";
+            div.style.color =
+              currentLevel >= upgrade.maxLevel ? "var(--a)" : "var(--g)";
+
             div.innerHTML = `
               <div style="font-weight:bold;">${upgrade.name} (LVL ${currentLevel}/${upgrade.maxLevel})</div>
               <div style="font-size:10px; opacity:0.7;">${upgrade.desc}</div>
               ${currentLevel < upgrade.maxLevel ? `<div style="margin-top:4px; font-size:11px;">COST: ${cost} CREDITS</div>` : "<div style='margin-top:4px; font-size:11px;'>✅ MAX LEVEL!</div>"}
             `;
-            
+
             if (canBuy) {
               div.style.cursor = "pointer";
               div.onclick = () => buyUpgrade(upgrade);
             }
-            
+
+            container.appendChild(div);
+          });
+
+          // Then show themes
+          const themeHeader = document.createElement("div");
+          themeHeader.style.fontSize = "14px";
+          themeHeader.style.marginTop = "16px";
+          themeHeader.style.marginBottom = "8px";
+          themeHeader.textContent = "🎨 THEMES";
+          container.appendChild(themeHeader);
+
+          THEMES.forEach((theme) => {
+            const isUnlocked = unlockedThemes.includes(theme.id);
+            const isSelected = currentTheme === theme.id;
+            const canBuy = !isUnlocked && credits >= theme.cost;
+
+            const div = document.createElement("div");
+            div.className = "ach";
+            div.style.borderColor = isSelected
+              ? "var(--a)"
+              : isUnlocked
+                ? "var(--g)"
+                : "var(--td)";
+            div.style.color = isSelected
+              ? "var(--a)"
+              : isUnlocked
+                ? "var(--g)"
+                : "var(--td)";
+
+            div.innerHTML = `
+              <div style="font-weight:bold;">${theme.name}</div>
+              <div style="font-size:10px; opacity:0.7;">${isSelected ? "✅ CURRENTLY ACTIVE" : isUnlocked ? "Click to apply" : `COST: ${theme.cost} CREDITS`}</div>
+            `;
+
+            if (isUnlocked && !isSelected) {
+              div.style.cursor = "pointer";
+              div.onclick = () => {
+                currentTheme = theme.id;
+                document.body.className = theme.id;
+                saveStats();
+                playSuccess();
+                renderUpgradeShop();
+              };
+            } else if (canBuy) {
+              div.style.cursor = "pointer";
+              div.onclick = () => {
+                credits -= theme.cost;
+                unlockedThemes.push(theme.id);
+                currentTheme = theme.id;
+                document.body.className = theme.id;
+                saveStats();
+                playSuccess();
+                renderUpgradeShop();
+              };
+            }
+
             container.appendChild(div);
           });
         }
-        
+
         function buyUpgrade(upgrade) {
           const cost = getUpgradeCost(upgrade);
           const currentLevel = upgrades[upgrade.id] || 0;
@@ -1728,7 +2063,7 @@
             renderUpgradeShop();
           }
         }
-        
+
         function showStats() {
           const statText = `📊 YOUR STATS:\n\n- Games Played: ${gamesPlayed}\n- Total Signals: ${totalSignalsSent}\n- Total Play Time: ${Math.floor(totalPlayTime / 60)}m ${Math.floor(totalPlayTime % 60)}s\n- High Score: ${hiScore}`;
           alert(statText);
@@ -1752,19 +2087,28 @@
 
         function init() {
           document.getElementById("hs").textContent = "BEST: " + hiScore;
-          gameActive = true;
+          // Apply current theme
+          document.body.className = currentTheme;
+
+          if (firstPlay) {
+            gameActive = false;
+            openTutorial();
+          } else {
+            gameActive = true;
+            startTimer();
+          }
+
           initAudio();
           updateBatteryUI();
           updateThreatMap();
-          startTimer();
           animateMeter();
           setInterval(updateThreatMap, 2000);
           setInterval(randomEvent, 18000);
           setInterval(spawnPowerUp, 25000);
           setInterval(updateStaticLevel, 100);
-          
+
           const powerupUpgradeLevel = upgrades.powerup_chance || 0;
-          const morseChance = 0.15 + (powerupUpgradeLevel * 0.05);
+          const morseChance = 0.15 + powerupUpgradeLevel * 0.05;
           setInterval(() => {
             if (gameActive && Math.random() < morseChance) startIncomingMorse();
           }, 20000);
@@ -1780,13 +2124,22 @@
           timeLeft = Math.max(0, timeLeft - 0.1);
           totalPlayTime += 0.1;
           updateTimerUI();
-          noise = Math.min(95, noise + 0.04 + threat * 0.025 + wave * 0.01);
-          battery = Math.max(0, battery - 0.02 - threat * 0.005);
+
+          // Handle stealth mode
+          if (stealthActive && Date.now() > stealthEndTime) {
+            stealthActive = false;
+          }
+          if (!stealthActive) {
+            noise = Math.min(95, noise + 0.04 + threat * 0.025 + wave * 0.01);
+            battery = Math.max(0, battery - 0.02 - threat * 0.005);
+          }
           updateBatteryUI();
+
           if (silentCD > 0) silentCD--;
           if (boostCD > 0) boostCD--;
           document.getElementById("hideB").disabled = silentCD > 0;
           document.getElementById("boostB").disabled = boostCD > 0;
+
           if (silentCD > 0) {
             document.getElementById("hideB").querySelector("span").textContent =
               "◼ " + Math.ceil(silentCD / 10) + "s";
@@ -1804,8 +2157,10 @@
               .getElementById("boostB")
               .querySelector("span").textContent = "⚡ BOOST";
           }
+
           updateNoise();
           if (timeLeft <= 0) triggerEvent();
+
           if (battery <= 0) {
             document.querySelector(".hdr h1").classList.add("glitch");
             setTimeout(
@@ -1840,13 +2195,14 @@
                   ? "HIGH"
                   : "CRIT";
           const nc =
-            noise < 30 ? "var(--a)" : noise < 60 ? "var(--a)" : "var(--r)";
+            noise < 30 ? "var(--g)" : noise < 60 ? "var(--a)" : "var(--r)";
           const nl = document.getElementById("nl");
           nl.textContent = lvl;
           nl.style.color = nc;
           document.getElementById("tl").textContent = threat;
-          document.getElementById("nv").textContent =
-            "NOISE: " + Math.round(noise) + "%";
+          const nv = document.getElementById("nv");
+          nv.textContent = "NOISE: " + Math.round(noise) + "%";
+          nv.style.color = nc;
           document.getElementById("noise").style.opacity =
             noise > 65 ? (noise - 65) / 120 : 0;
           if (noise >= 95)
@@ -1894,9 +2250,27 @@
           score += earned;
           totalSignalsSent++;
           combo++;
+          if (combo > maxCombo) maxCombo = combo;
           streak++;
           if (streak >= 3) multiplier = Math.min(5, 1 + Math.floor(streak / 3));
           updateCombo();
+
+          // COMBO BONUSES!
+          if (combo === 5) {
+            showEvent("🔥 COMBO x5! Bonus +3 score!", "");
+            score += 3;
+            noise = Math.max(5, noise - 5);
+          }
+          if (combo === 10) {
+            showEvent("🔥 COMBO x10! Bonus +10 score!", "");
+            score += 10;
+            noise = Math.max(5, noise - 10);
+          }
+          if (combo === 20) {
+            showEvent("💎 COMBO x20! Bonus +25 score!", "");
+            score += 25;
+            noise = Math.max(5, noise - 15);
+          }
 
           const sdEl = document.getElementById("sd");
           sdEl.textContent = score;
@@ -1946,8 +2320,27 @@
           }
           if (score % 10 === 0) {
             wave++;
+            if (wave > maxWave) maxWave = wave;
             document.getElementById("waveDisp").textContent = "W" + wave;
-            showEvent("🌊 WAVE " + wave + " — ANCAMAN MENINGKAT!", "warn-e");
+            if (wave % 5 === 0) {
+              // BOSS WAVE!
+              showEvent(
+                "👾 BOSS WAVE " + wave + "! ANCAMAN EKSTRIM!",
+                "warn-e",
+              );
+              threat = Math.min(20, threat + 5);
+              noise = Math.min(90, noise + 15);
+              triggerRedFlash();
+              triggerScreenShake(3);
+              playAlert();
+              if (!achievements.includes("A19")) {
+                achievements.push("A19");
+                showEvent("🏆 ACHIEVEMENT UNLOCKED: 👾 BOSS SLAYER!", "");
+                saveStats();
+              }
+            } else {
+              showEvent("🌊 WAVE " + wave + " — ANCAMAN MENINGKAT!", "warn-e");
+            }
           }
           checkAchievements();
           setStatus("TX DITERIMA [+" + earned + "] — TERUSKAN SIARAN", "ok");
@@ -1963,9 +2356,30 @@
           if (!gameActive) return;
           freqIdx = (freqIdx + 1) % freqs.length;
           const f = freqs[freqIdx];
-          document.getElementById("fd").textContent = f;
-          const badge = document.getElementById("freqBadge");
-          badge.textContent = FREQ_NAMES[f] || "UNKNOWN";
+          const fdEl = document.getElementById("fd");
+
+          // Animated scramble
+          let steps = 10;
+          const scrambleInterval = setInterval(() => {
+            if (steps > 0) {
+              let scrambled = "";
+              for (let i = 0; i < f.length; i++) {
+                if (f[i] === ".") {
+                  scrambled += ".";
+                } else {
+                  scrambled += Math.floor(Math.random() * 10);
+                }
+              }
+              fdEl.textContent = scrambled;
+              steps--;
+            } else {
+              clearInterval(scrambleInterval);
+              fdEl.textContent = f;
+              const badge = document.getElementById("freqBadge");
+              badge.textContent = FREQ_NAMES[f] || "UNKNOWN";
+            }
+          }, 50);
+
           noise = Math.max(5, noise - 18);
           scanCount++;
           addLog(
@@ -2119,29 +2533,85 @@
           const ach = [];
           if (score >= 10 && !achievements.includes("A1")) {
             achievements.push("A1");
-            ach.push("10 SINYAL");
+            ach.push("🚀 FIRST STEPS: Kirim 10 sinyal!");
+          }
+          if (score >= 50 && !achievements.includes("A7")) {
+            achievements.push("A7");
+            ach.push("🌟 SIGNAL MASTER: Kirim 50 sinyal!");
+          }
+          if (score >= 100 && !achievements.includes("A8")) {
+            achievements.push("A8");
+            ach.push("🔥 LEGEND: Kirim 100 sinyal!");
           }
           if (streak >= 5 && !achievements.includes("A2")) {
             achievements.push("A2");
-            ach.push("STREAK 5");
+            ach.push("⚡ STREAKER: Streak 5!");
+          }
+          if (streak >= 10 && !achievements.includes("A9")) {
+            achievements.push("A9");
+            ach.push("🔥 STREAK MASTER: Streak 10!");
+          }
+          if (streak >= 20 && !achievements.includes("A10")) {
+            achievements.push("A10");
+            ach.push("💥 UNSTOPPABLE: Streak 20!");
           }
           if (multiplier >= 3 && !achievements.includes("A3")) {
             achievements.push("A3");
-            ach.push("3x MULTIPLIER");
+            ach.push("✨ BOOSTED: 3x Multiplier!");
+          }
+          if (multiplier >= 5 && !achievements.includes("A11")) {
+            achievements.push("A11");
+            ach.push("💫 MAXIMUM POWER: 5x Multiplier!");
           }
           if (wave >= 3 && !achievements.includes("A4")) {
             achievements.push("A4");
-            ach.push("WAVE 3");
+            ach.push("🌊 SURVIVOR: Wave 3!");
+          }
+          if (wave >= 5 && !achievements.includes("A12")) {
+            achievements.push("A12");
+            ach.push("🌊 WAVE RIDER: Wave 5!");
+          }
+          if (wave >= 10 && !achievements.includes("A13")) {
+            achievements.push("A13");
+            ach.push("🌊 WAVE LEGEND: Wave 10!");
           }
           if (boostUsed >= 3 && !achievements.includes("A5")) {
             achievements.push("A5");
-            ach.push("3x BOOST");
+            ach.push("⚡ BOOST ENTHUSIAST: 3 Boosts!");
           }
           if (scanCount >= 10 && !achievements.includes("A6")) {
             achievements.push("A6");
-            ach.push("SCANNER");
+            ach.push("📡 SCANNER PRO: 10 Scans!");
           }
-          ach.forEach((a) => showEvent("🏆 ACHIEVEMENT: " + a, ""));
+          if (combo >= 10 && !achievements.includes("A14")) {
+            achievements.push("A14");
+            ach.push("🔥 COMBO KING: Combo 10!");
+          }
+          if (combo >= 20 && !achievements.includes("A15")) {
+            achievements.push("A15");
+            ach.push("💎 COMBO LEGEND: Combo 20!");
+          }
+          if (gamesPlayed >= 10 && !achievements.includes("A16")) {
+            achievements.push("A16");
+            ach.push("🎮 DEDICATED: 10 Games Played!");
+          }
+          if (hiScore >= 20 && !achievements.includes("A17")) {
+            achievements.push("A17");
+            ach.push("🏆 HIGH SCORER: High Score 20+!");
+          }
+          if (hiScore >= 50 && !achievements.includes("A18")) {
+            achievements.push("A18");
+            ach.push("🏆 ELITE SCORER: High Score 50+!");
+          }
+          if (wave >= 5 && !achievements.includes("A19")) {
+            achievements.push("A19");
+            ach.push("👾 BOSS SLAYER: Survive Boss Wave!");
+          }
+
+          ach.forEach((a) => showEvent("🏆 ACHIEVEMENT UNLOCKED: " + a, ""));
+
+          // Save whenever we unlock new achievements
+          if (ach.length > 0) saveStats();
         }
 
         function gameOver(reason) {
@@ -2151,6 +2621,18 @@
           // Award credits based on score
           const earnedCredits = Math.floor(score / 2);
           credits += earnedCredits;
+
+          // Add to leaderboard
+          const newEntry = {
+            score,
+            wave,
+            maxCombo,
+            date: new Date().toLocaleDateString("id-ID"),
+          };
+          leaderboard.push(newEntry);
+          leaderboard.sort((a, b) => b.score - a.score);
+          leaderboard = leaderboard.slice(0, 5); // Keep top 5
+
           if (earnedCredits > 0) {
             showEvent(`💰 +${earnedCredits} CREDITS EARNED!`, "");
           }
@@ -2160,17 +2642,38 @@
           document.getElementById("goS").textContent =
             "SINYAL TERKIRIM: " + score;
           document.getElementById("goH").textContent = "HIGH SCORE: " + hiScore;
+
+          // Show detailed stats
+          document.getElementById("goStats").innerHTML = `
+            🌊 Max Wave: ${maxWave} | 🔥 Max Combo: ${maxCombo} | ✨ Power-Ups Used: ${powerupsUsed}
+            <br><br>🏆 Leaderboard (Top 5):<br>
+            ${leaderboard.map((entry, idx) => `${idx + 1}. Score ${entry.score} (Wave ${entry.wave})`).join("<br>")}
+          `;
+
           document.getElementById("goM").textContent = reason;
           const achEl = document.getElementById("achList");
           achEl.innerHTML = "";
           achievements.forEach((id) => {
             const labels = {
-              A1: "10 SINYAL",
-              A2: "STREAK 5",
-              A3: "3x MULTI",
-              A4: "WAVE 3",
-              A5: "BOOSTER",
-              A6: "SCANNER",
+              A1: "🚀 FIRST STEPS",
+              A2: "⚡ STREAK 5",
+              A3: "✨ BOOSTED",
+              A4: "🌊 WAVE 3",
+              A5: "⚡ BOOST ENTHUSIAST",
+              A6: "📡 SCANNER PRO",
+              A7: "🌟 SIGNAL MASTER",
+              A8: "🔥 LEGEND",
+              A9: "🔥 STREAK MASTER",
+              A10: "💥 UNSTOPPABLE",
+              A11: "💫 MAX POWER",
+              A12: "🌊 WAVE RIDER",
+              A13: "🌊 WAVE LEGEND",
+              A14: "🔥 COMBO KING",
+              A15: "💎 COMBO LEGEND",
+              A16: "🎮 DEDICATED",
+              A17: "🏆 HIGH SCORER",
+              A18: "🏆 ELITE SCORER",
+              A19: "👾 BOSS SLAYER",
             };
             const span = document.createElement("span");
             span.className = "ach";
@@ -2184,13 +2687,31 @@
 
         function restartGame() {
           score = 0;
+          // Reset new variables
+          maxCombo = 0;
+          maxWave = 1;
+          powerupsUsed = 0;
+          stealthActive = false;
+          stealthEndTime = 0;
+
+          // Apply difficulty settings
+          let baseTime = 15;
+          let baseNoise = 12;
+          if (currentDifficulty === "easy") {
+            baseTime = 20;
+            baseNoise = 5;
+          } else if (currentDifficulty === "hard") {
+            baseTime = 10;
+            baseNoise = 20;
+          }
+
           // Apply upgrades
           const timeUpgradeLevel = upgrades.time_extension || 0;
           const noiseUpgradeLevel = upgrades.noise_reduction || 0;
-          
-          timeLeft = 15 + (timeUpgradeLevel * 2);
-          maxTime = 15 + (timeUpgradeLevel * 2);
-          noise = Math.max(2, 12 - (noiseUpgradeLevel * 10));
+
+          timeLeft = baseTime + timeUpgradeLevel * 2;
+          maxTime = baseTime + timeUpgradeLevel * 2;
+          noise = Math.max(2, baseNoise - noiseUpgradeLevel * 10);
           threat = 0;
           loreIdx = 0;
           silentCD = 0;
@@ -2204,10 +2725,10 @@
           boostUsed = 0;
           achievements = [];
           mmAngle = 0;
-          
+
           const batteryUpgradeLevel = upgrades.battery_capacity || 0;
           // Battery capacity upgrade is 50% per level, so start higher
-          battery = 100 + (batteryUpgradeLevel * 50);
+          battery = 100 + batteryUpgradeLevel * 50;
           powerUps = [];
           incomingMorseActive = false;
           if (incomingMorseTimer) clearInterval(incomingMorseTimer);
@@ -2238,6 +2759,12 @@
           gameActive = true;
           startTimer();
           setStatus("SIARAN AKTIF — MENUNGGU INPUT OPERATOR", "ok");
+        }
+
+        function changeDifficulty(diff) {
+          currentDifficulty = diff;
+          saveStats();
+          showEvent(`⚙️ Difficulty changed to: ${diff.toUpperCase()}`, "");
         }
 
         function animateMeter() {
