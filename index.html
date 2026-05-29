@@ -13,7 +13,7 @@
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="Signal Terakhir" />
-    <link rel="manifest" href="manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
     <link
       rel="apple-touch-icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%2304080a'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='100' fill='%2339ff14'%3E📡%3C/text%3E%3C/svg%3E"
@@ -3692,59 +3692,8 @@
 
         // ===== PWA: Register Service Worker =====
         if ("serviceWorker" in navigator) {
-          const swCode = `
-const CACHE = 'signal-terakhir-v1';
-const ASSETS = ['/'];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
-  self.clients.claim();
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-});
-          `;
-          const blob = new Blob([swCode], { type: "application/javascript" });
-          const swURL = URL.createObjectURL(blob);
-          navigator.serviceWorker.register(swURL).catch(() => {});
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
         }
-
-        // ===== PWA: Inject manifest =====
-        (function () {
-          const manifest = {
-            name: "Signal Terakhir",
-            short_name: "SigTerakhir",
-            description: "Emergency broadcast survival game",
-            start_url: ".",
-            display: "standalone",
-            background_color: "#04080a",
-            theme_color: "#04080a",
-            orientation: "portrait-primary",
-            icons: [
-              {
-                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%2304080a'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='110' fill='%2339ff14'%3E📡%3C/text%3E%3C/svg%3E",
-                sizes: "192x192",
-                type: "image/svg+xml",
-              },
-              {
-                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%2304080a'/%3E%3Ctext x='256' y='340' text-anchor='middle' font-size='280' fill='%2339ff14'%3E📡%3C/text%3E%3C/svg%3E",
-                sizes: "512x512",
-                type: "image/svg+xml",
-              },
-            ],
-          };
-          const blob = new Blob([JSON.stringify(manifest)], {
-            type: "application/json",
-          });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("link");
-          link.rel = "manifest";
-          link.href = url;
-          document.head.appendChild(link);
-        })();
       </script>
     </div>
   </body>
