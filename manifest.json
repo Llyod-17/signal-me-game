@@ -1,0 +1,21 @@
+{
+  "name": "Signal Terakhir",
+  "short_name": "Signal Terakhir",
+  "description": "Emergency broadcast game — survive the signal",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#04080a",
+  "theme_color": "#04080a",
+  "icons": [
+    {
+      "src": "https://coresg-normal.trae.ai/api/v1/text-to-image?prompt=retro%20radio%20wave%20signal%20green%20glow%20emergency%20broadcast%20icon&image_size=square_hd",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "https://coresg-normal.trae.ai/api/v1/text-to-image?prompt=retro%20radio%20wave%20signal%20green%20glow%20emergency%20broadcast%20icon&image_size=square",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

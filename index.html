@@ -2,6 +2,23 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#04080a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Signal Terakhir" />
+    <link rel="manifest" href="manifest.json" />
+    <link
+      rel="apple-touch-icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%2304080a'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='100' fill='%2339ff14'%3E📡%3C/text%3E%3C/svg%3E"
+    />
+    <title>SIGNAL TERAKHIR</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap");
       * {
@@ -912,9 +929,266 @@
       .red-flash {
         animation: redFlash 0.3s ease-in-out;
       }
+
+      /* ===== MOBILE / PWA ===== */
+      @media (max-width: 600px) {
+        .wrap {
+          padding: 10px 8px;
+        }
+        .hdr h1 {
+          font-size: 28px;
+          letter-spacing: 4px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        .fd {
+          font-size: 38px;
+        }
+        .sb {
+          font-size: 42px;
+        }
+        .got {
+          font-size: 48px;
+        }
+        .gos {
+          font-size: 28px;
+        }
+        .act {
+          flex-direction: column;
+        }
+        .bg {
+          flex-direction: row;
+          flex-wrap: wrap;
+          min-width: unset;
+        }
+        .bg .btn {
+          flex: 1;
+          min-width: 70px;
+          font-size: 10px;
+          padding: 8px 6px;
+        }
+        .ea {
+          min-height: 48px;
+          font-size: 13px;
+        }
+        .stats {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+        .cmd-display {
+          grid-template-columns: 1fr;
+        }
+        /* Hide keyboard shortcuts on mobile */
+        .cmd {
+          display: none;
+        }
+        .hdr > div:last-child {
+          flex-wrap: wrap;
+          gap: 4px;
+          justify-content: center;
+        }
+        .hdr > div:last-child .btn {
+          font-size: 9px;
+          padding: 2px 6px;
+        }
+        .minimap {
+          height: 60px;
+        }
+        .go {
+          padding: 20px 16px;
+        }
+        .achs {
+          gap: 5px;
+        }
+        .ach {
+          font-size: 9px;
+          padding: 3px 7px;
+        }
+      }
+      @media (max-width: 400px) {
+        .hdr h1 {
+          font-size: 22px;
+          letter-spacing: 2px;
+        }
+        .fd {
+          font-size: 30px;
+        }
+      }
+      /* Safe area for notched phones */
+      body {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+      }
+      .wrap {
+        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      }
+
+      @keyframes introPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+          border-color: #39ff14;
+        }
+        50% {
+          box-shadow:
+            0 0 35px rgba(57, 255, 20, 0.6),
+            0 0 60px rgba(57, 255, 20, 0.2);
+          border-color: #39ff14;
+          filter: brightness(1.3);
+        }
+      }
+      @keyframes introFlicker {
+        0%,
+        19%,
+        21%,
+        23%,
+        25%,
+        54%,
+        56%,
+        100% {
+          opacity: 1;
+        }
+        20%,
+        24%,
+        55% {
+          opacity: 0.4;
+        }
+      }
+      #introTitle {
+        animation: none;
+      }
+      #introTitle.flicker {
+        animation: introFlicker 0.3s ease-in-out;
+      }
     </style>
   </head>
   <body>
+    <!-- ===== CINEMATIC INTRO SCREEN ===== -->
+    <div
+      id="introOverlay"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      "
+    >
+      <canvas
+        id="introCanvas"
+        style="position: absolute; inset: 0; width: 100%; height: 100%"
+      ></canvas>
+      <div
+        id="introContent"
+        style="
+          position: relative;
+          z-index: 2;
+          text-align: center;
+          width: 100%;
+          max-width: 600px;
+          padding: 20px;
+        "
+      >
+        <div
+          id="introBootLog"
+          style="
+            font-family: &quot;Share Tech Mono&quot;, monospace;
+            font-size: 11px;
+            color: #1a7a09;
+            letter-spacing: 2px;
+            text-align: left;
+            margin-bottom: 24px;
+            min-height: 120px;
+            line-height: 2;
+            padding: 0 20px;
+          "
+        ></div>
+        <div
+          id="introLore"
+          style="
+            font-family: &quot;Share Tech Mono&quot;, monospace;
+            font-size: 12px;
+            color: #39ff14;
+            letter-spacing: 1px;
+            line-height: 1.9;
+            margin-bottom: 28px;
+            min-height: 80px;
+            padding: 0 20px;
+            opacity: 0;
+            transition: opacity 0.8s;
+            text-shadow: 0 0 8px #39ff14;
+          "
+        ></div>
+        <div
+          id="introTitle"
+          style="
+            font-family: &quot;VT323&quot;, monospace;
+            font-size: 72px;
+            color: #39ff14;
+            letter-spacing: 12px;
+            text-shadow:
+              0 0 20px #39ff14,
+              0 0 50px rgba(57, 255, 20, 0.4);
+            opacity: 0;
+            transition: opacity 1s;
+            margin-bottom: 6px;
+            line-height: 1;
+          "
+        ></div>
+        <div
+          id="introSub"
+          style="
+            font-family: &quot;Share Tech Mono&quot;, monospace;
+            font-size: 10px;
+            color: #1f6b10;
+            letter-spacing: 5px;
+            opacity: 0;
+            transition: opacity 1s;
+            margin-bottom: 36px;
+          "
+        ></div>
+        <button
+          id="introBtn"
+          onclick="startFromIntro()"
+          style="
+            display: none;
+            font-family: &quot;Share Tech Mono&quot;, monospace;
+            font-size: 13px;
+            letter-spacing: 4px;
+            padding: 14px 40px;
+            border: 1px solid #39ff14;
+            background: transparent;
+            color: #39ff14;
+            cursor: pointer;
+            border-radius: 3px;
+            text-shadow: 0 0 8px #39ff14;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+            animation: introPulse 1.5s ease-in-out infinite;
+          "
+        >
+          ▶ MULAI TRANSMISI
+        </button>
+        <div
+          id="introSkip"
+          onclick="skipIntro()"
+          style="
+            font-family: &quot;Share Tech Mono&quot;, monospace;
+            font-size: 9px;
+            color: #1f6b10;
+            letter-spacing: 3px;
+            margin-top: 20px;
+            cursor: pointer;
+            opacity: 0.5;
+          "
+        >
+          [ SKIP ]
+        </div>
+      </div>
+    </div>
+
     <div id="particles"></div>
     <div id="screenShake">
       <div id="scanline"></div>
@@ -963,6 +1237,20 @@
                 style="padding: 4px 10px; font-size: 10px; letter-spacing: 1px"
               >
                 <span>🔧 UPGRADES</span>
+              </button>
+              <button
+                class="btn"
+                id="pauseBtn"
+                onclick="togglePause()"
+                style="
+                  padding: 4px 10px;
+                  font-size: 10px;
+                  letter-spacing: 1px;
+                  border-color: var(--a);
+                  color: var(--a);
+                "
+              >
+                <span>⏸ PAUSE</span>
               </button>
             </div>
           </div>
@@ -1229,13 +1517,30 @@
         ></div>
         <div class="gom" id="goM">Mereka menemukanmu.</div>
         <div class="achs" id="achList"></div>
-        <button
-          class="btn"
-          onclick="restartGame()"
-          style="margin-top: 10px; letter-spacing: 3px; min-width: 200px"
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+          "
         >
-          <span>▶ TRANSMIT AGAIN</span>
-        </button>
+          <button
+            class="btn"
+            onclick="restartGame()"
+            style="letter-spacing: 3px; min-width: 200px"
+          >
+            <span>▶ TRANSMIT AGAIN</span>
+          </button>
+          <button
+            class="btn amb"
+            onclick="shareScore()"
+            style="letter-spacing: 2px; min-width: 160px"
+          >
+            <span>📋 SHARE SCORE</span>
+          </button>
+        </div>
       </div>
 
       <div class="go" id="upgradeShop">
@@ -1268,6 +1573,63 @@
             <span>📊 STATS</span>
           </button>
         </div>
+      </div>
+
+      <!-- Stats Modal -->
+      <div class="go" id="statsModal">
+        <div
+          class="got"
+          style="
+            color: var(--g);
+            text-shadow: 0 0 25px var(--g);
+            font-size: 36px;
+          "
+        >
+          OPERATOR STATS
+        </div>
+        <div
+          id="statsContent"
+          style="
+            font-size: 13px;
+            line-height: 2;
+            text-align: center;
+            color: var(--td);
+            max-width: 420px;
+          "
+        ></div>
+        <button
+          class="btn"
+          onclick="
+            document.getElementById('statsModal').classList.remove('show')
+          "
+          style="margin-top: 14px; letter-spacing: 3px; min-width: 150px"
+        >
+          <span>✕ CLOSE</span>
+        </button>
+      </div>
+
+      <!-- Pause Overlay -->
+      <div class="go" id="pauseOverlay">
+        <div
+          class="got"
+          style="
+            color: var(--a);
+            text-shadow: 0 0 25px var(--a);
+            letter-spacing: 12px;
+          "
+        >
+          PAUSED
+        </div>
+        <div class="gom" style="margin-top: 10px">
+          Tekan P atau klik RESUME untuk lanjut
+        </div>
+        <button
+          class="btn amb"
+          onclick="togglePause()"
+          style="margin-top: 20px; letter-spacing: 3px; min-width: 200px"
+        >
+          <span>▶ RESUME</span>
+        </button>
       </div>
 
       <script>
@@ -1930,13 +2292,23 @@
             .getElementById("morseAnswer")
             .value.trim()
             .toUpperCase();
-          if (answer.length > 0 && !incomingMorseTarget.startsWith(answer)) {
-            // Wrong answer feedback!
+          // Only auto-complete on exact match — no live fail flash while typing
+          if (answer === incomingMorseTarget) endIncomingMorse(true);
+        }
+
+        function checkMorseAnswerSubmit() {
+          if (!incomingMorseActive) return;
+          const answer = document
+            .getElementById("morseAnswer")
+            .value.trim()
+            .toUpperCase();
+          if (answer === incomingMorseTarget) {
+            endIncomingMorse(true);
+          } else if (answer.length > 0) {
             playFail();
             triggerRedFlash();
             addLog("[ WARNING ] Morse jawaban salah!", "warn");
           }
-          if (answer === incomingMorseTarget) endIncomingMorse(true);
         }
 
         // Upgrade Shop Functions
@@ -2065,9 +2437,72 @@
         }
 
         function showStats() {
-          const statText = `📊 YOUR STATS:\n\n- Games Played: ${gamesPlayed}\n- Total Signals: ${totalSignalsSent}\n- Total Play Time: ${Math.floor(totalPlayTime / 60)}m ${Math.floor(totalPlayTime % 60)}s\n- High Score: ${hiScore}`;
-          alert(statText);
+          const modal = document.getElementById("statsModal");
+          const sc = document.getElementById("statsContent");
+          sc.innerHTML = `
+            <div style="margin-bottom:12px"><span style="color:var(--g);font-family:'VT323',monospace;font-size:28px">${gamesPlayed}</span><br><span style="font-size:10px;letter-spacing:2px">GAMES PLAYED</span></div>
+            <div style="margin-bottom:12px"><span style="color:var(--g);font-family:'VT323',monospace;font-size:28px">${totalSignalsSent}</span><br><span style="font-size:10px;letter-spacing:2px">TOTAL SIGNALS SENT</span></div>
+            <div style="margin-bottom:12px"><span style="color:var(--g);font-family:'VT323',monospace;font-size:28px">${Math.floor(totalPlayTime / 60)}m ${Math.floor(totalPlayTime % 60)}s</span><br><span style="font-size:10px;letter-spacing:2px">TOTAL PLAY TIME</span></div>
+            <div style="margin-bottom:12px"><span style="color:var(--a);font-family:'VT323',monospace;font-size:28px">${hiScore}</span><br><span style="font-size:10px;letter-spacing:2px">HIGH SCORE</span></div>
+            <div><span style="color:var(--a);font-family:'VT323',monospace;font-size:28px">${achievements.length}</span><br><span style="font-size:10px;letter-spacing:2px">ACHIEVEMENTS UNLOCKED</span></div>
+          `;
+          closeUpgradeShop();
+          modal.classList.add("show");
         }
+
+        let gamePaused = false;
+
+        function togglePause() {
+          if (!gameActive && !gamePaused) return;
+          gamePaused = !gamePaused;
+          const overlay = document.getElementById("pauseOverlay");
+          const btn = document.getElementById("pauseBtn");
+          if (gamePaused) {
+            clearInterval(timerInterval);
+            overlay.classList.add("show");
+            if (btn) btn.querySelector("span").textContent = "▶ RESUME";
+          } else {
+            overlay.classList.remove("show");
+            startTimer();
+            if (btn) btn.querySelector("span").textContent = "⏸ PAUSE";
+          }
+        }
+
+        function shareScore() {
+          const text = `🚨 SIGNAL TERAKHIR — Score: ${score} | Wave: ${wave} | Max Combo: ${maxCombo} | Achievements: ${achievements.length} | Coba kalahkan aku! 📡`;
+          if (navigator.clipboard) {
+            navigator.clipboard
+              .writeText(text)
+              .then(() => {
+                showEvent("📋 SCORE DISALIN KE CLIPBOARD!", "");
+              })
+              .catch(() => {
+                prompt("Salin teks ini:", text);
+              });
+          } else {
+            prompt("Salin teks ini:", text);
+          }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            if (gameActive && !gamePaused) clearInterval(timerInterval);
+          } else {
+            if (gameActive && !gamePaused) startTimer();
+          }
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if ((e.key === "p" || e.key === "P") && !e.ctrlKey && !e.metaKey) {
+            const active = document.activeElement;
+            if (
+              active &&
+              (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
+            )
+              return;
+            if (gameActive || gamePaused) togglePause();
+          }
+        });
 
         document.getElementById("mi").addEventListener("input", (e) => {
           const m = toMorse(e.target.value);
@@ -2085,6 +2520,15 @@
           .getElementById("morseAnswer")
           .addEventListener("input", checkMorseAnswer);
 
+        document
+          .getElementById("morseAnswer")
+          .addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              checkMorseAnswerSubmit();
+            }
+          });
+
         function init() {
           document.getElementById("hs").textContent = "BEST: " + hiScore;
           // Apply current theme
@@ -2094,9 +2538,33 @@
             gameActive = false;
             openTutorial();
           } else {
-            gameActive = true;
-            startTimer();
+            // Intro overlay is showing; game starts after intro dismisses
+            gameActive = false;
           }
+
+          // After intro finishes, actually start the game
+          const _origStartFromIntro = window.startFromIntro;
+          window.startFromIntro = function () {
+            _origStartFromIntro && _origStartFromIntro();
+            setTimeout(() => {
+              if (!firstPlay) {
+                gameActive = true;
+                startTimer();
+                setStatus("SIARAN AKTIF — MENUNGGU INPUT OPERATOR", "ok");
+              }
+            }, 700); // after fade-out
+          };
+          const _origSkipIntro = window.skipIntro;
+          window.skipIntro = function () {
+            _origSkipIntro && _origSkipIntro();
+            setTimeout(() => {
+              if (!firstPlay) {
+                gameActive = true;
+                startTimer();
+                setStatus("SIARAN AKTIF — MENUNGGU INPUT OPERATOR", "ok");
+              }
+            }, 700);
+          };
 
           initAudio();
           updateBatteryUI();
@@ -2723,7 +3191,7 @@
           multiplier = 1;
           scanCount = 0;
           boostUsed = 0;
-          achievements = [];
+          // achievements intentionally NOT reset — persisted in localStorage
           mmAngle = 0;
 
           const batteryUpgradeLevel = upgrades.battery_capacity || 0;
@@ -2779,7 +3247,504 @@
           }, 100);
         }
 
+        // ============================================================
+        //  CINEMATIC INTRO ENGINE
+        // ============================================================
+        (function () {
+          const overlay = document.getElementById("introOverlay");
+          const canvas = document.getElementById("introCanvas");
+          const ctx = canvas.getContext("2d");
+          const bootLog = document.getElementById("introBootLog");
+          const loreEl = document.getElementById("introLore");
+          const titleEl = document.getElementById("introTitle");
+          const subEl = document.getElementById("introSub");
+          const btn = document.getElementById("introBtn");
+          const skipEl = document.getElementById("introSkip");
+
+          let introAudioCtx = null;
+          let introAnimId = null;
+          let introPhase = "noise"; // noise → boot → signal → lore → title → ready
+          let phaseTimer = 0;
+          let introSkipped = false;
+          let staticNode = null,
+            staticGainNode = null;
+
+          // ── Canvas resize ──────────────────────────────────────────
+          function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+          }
+          resizeCanvas();
+          window.addEventListener("resize", resizeCanvas);
+
+          // ── Audio ──────────────────────────────────────────────────
+          function initIntroAudio() {
+            try {
+              introAudioCtx = new (
+                window.AudioContext || window.webkitAudioContext
+              )();
+              // White noise buffer
+              const bufSize = introAudioCtx.sampleRate * 2;
+              const buf = introAudioCtx.createBuffer(
+                1,
+                bufSize,
+                introAudioCtx.sampleRate,
+              );
+              const data = buf.getChannelData(0);
+              for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+              staticNode = introAudioCtx.createBufferSource();
+              staticNode.buffer = buf;
+              staticNode.loop = true;
+              staticGainNode = introAudioCtx.createGain();
+              staticGainNode.gain.value = 0;
+              // Bandpass for radio feel
+              const bpf = introAudioCtx.createBiquadFilter();
+              bpf.type = "bandpass";
+              bpf.frequency.value = 1200;
+              bpf.Q.value = 0.5;
+              staticNode.connect(bpf);
+              bpf.connect(staticGainNode);
+              staticGainNode.connect(introAudioCtx.destination);
+              staticNode.start();
+            } catch (e) {}
+          }
+
+          function setStaticVolume(v, t) {
+            if (!staticGainNode) return;
+            const now = introAudioCtx.currentTime;
+            staticGainNode.gain.cancelScheduledValues(now);
+            staticGainNode.gain.linearRampToValueAtTime(v, now + (t || 0.3));
+          }
+
+          function playMorseBeep(freq, dur) {
+            if (!introAudioCtx) return;
+            try {
+              const osc = introAudioCtx.createOscillator();
+              const gain = introAudioCtx.createGain();
+              osc.type = "sine";
+              osc.frequency.value = freq || 700;
+              gain.gain.value = 0;
+              osc.connect(gain);
+              gain.connect(introAudioCtx.destination);
+              const now = introAudioCtx.currentTime;
+              gain.gain.linearRampToValueAtTime(0.15, now + 0.01);
+              gain.gain.setValueAtTime(0.15, now + (dur || 0.08) - 0.01);
+              gain.gain.linearRampToValueAtTime(0, now + (dur || 0.08));
+              osc.start(now);
+              osc.stop(now + (dur || 0.08) + 0.05);
+            } catch (e) {}
+          }
+
+          // SOS morse: ... --- ...
+          function playSOS() {
+            const dot = 0.08,
+              dash = 0.24,
+              gap = 0.12,
+              letterGap = 0.32;
+            const seq = [
+              dot,
+              gap,
+              dot,
+              gap,
+              dot,
+              letterGap,
+              dash,
+              gap,
+              dash,
+              gap,
+              dash,
+              letterGap,
+              dot,
+              gap,
+              dot,
+              gap,
+              dot,
+            ];
+            let t = 0;
+            seq.forEach((d) => {
+              if (d === gap || d === letterGap) {
+                t += d * 1000;
+                return;
+              }
+              const delay = t;
+              setTimeout(() => playMorseBeep(700, d), delay);
+              t += (d + gap) * 1000;
+            });
+          }
+
+          // ── Canvas draw phases ─────────────────────────────────────
+          let noiseAlpha = 0;
+          let signalProgress = 0; // 0→1 oscilloscope coalescing
+          let waveOffset = 0;
+          let scanlineY = 0;
+
+          function drawFrame(ts) {
+            introAnimId = requestAnimationFrame(drawFrame);
+            const W = canvas.width,
+              H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            // Base dark
+            ctx.fillStyle = `rgba(0,0,0,${introPhase === "noise" ? 0.3 : 0.15})`;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Phase: NOISE ──
+            if (introPhase === "noise" || introPhase === "boot") {
+              noiseAlpha = Math.min(1, noiseAlpha + 0.012);
+              // Draw random pixel noise
+              const idata = ctx.createImageData(W, H);
+              const d = idata.data;
+              const intensity = introPhase === "boot" ? 0.18 : 0.55;
+              for (let i = 0; i < d.length; i += 4) {
+                const v =
+                  Math.random() < intensity
+                    ? Math.floor(Math.random() * 80 + 10)
+                    : 0;
+                d[i] = 0;
+                d[i + 1] = v;
+                d[i + 2] = Math.floor(v * 0.3);
+                d[i + 3] = Math.floor(noiseAlpha * 180);
+              }
+              ctx.putImageData(idata, 0, 0);
+            }
+
+            // ── Phase: SIGNAL — oscilloscope waveform forming ──
+            if (
+              introPhase === "signal" ||
+              introPhase === "lore" ||
+              introPhase === "title" ||
+              introPhase === "ready"
+            ) {
+              signalProgress = Math.min(1, signalProgress + 0.008);
+              waveOffset += 3;
+
+              // Background subtle noise (fading)
+              if (signalProgress < 0.8) {
+                const idata = ctx.createImageData(W, H);
+                const d = idata.data;
+                for (let i = 0; i < d.length; i += 4) {
+                  const v =
+                    Math.random() < 0.05 * (1 - signalProgress) ? 40 : 0;
+                  d[i] = 0;
+                  d[i + 1] = v;
+                  d[i + 2] = 0;
+                  d[i + 3] = 80;
+                }
+                ctx.putImageData(idata, 0, 0);
+              }
+
+              // Oscilloscope lines (2 channels, like a real radio)
+              for (let ch = 0; ch < 2; ch++) {
+                const cy = H * (ch === 0 ? 0.38 : 0.62);
+                const amp = H * 0.06 * signalProgress;
+                ctx.beginPath();
+                ctx.strokeStyle =
+                  ch === 0
+                    ? `rgba(57,255,20,${0.4 + signalProgress * 0.5})`
+                    : `rgba(57,255,20,${0.2 + signalProgress * 0.25})`;
+                ctx.lineWidth = ch === 0 ? 1.5 : 0.8;
+                ctx.shadowBlur = 8 * signalProgress;
+                ctx.shadowColor = "#39ff14";
+                for (let x = 0; x < W; x++) {
+                  const noiseComp =
+                    (1 - signalProgress) * (Math.random() - 0.5) * 30;
+                  const sig1 = Math.sin((x + waveOffset) * 0.03 + ch) * amp;
+                  const sig2 = Math.sin((x + waveOffset) * 0.07) * amp * 0.4;
+                  const sig3 = Math.sin((x + waveOffset) * 0.011) * amp * 0.25;
+                  const y = cy + sig1 + sig2 + sig3 + noiseComp;
+                  x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+              }
+
+              // Frequency readout bottom-right
+              ctx.font = '11px "Share Tech Mono", monospace';
+              ctx.fillStyle = `rgba(31,107,16,${signalProgress * 0.8})`;
+              ctx.textAlign = "right";
+              ctx.fillText("FREQ: 121.5 MHz", W - 20, H - 20);
+              ctx.fillText(
+                "SNR: " + Math.floor(signalProgress * 100) + "%",
+                W - 20,
+                H - 36,
+              );
+              ctx.textAlign = "left";
+            }
+
+            // ── Scanline overlay ──
+            scanlineY = (scanlineY + 1.5) % H;
+            ctx.fillStyle = "rgba(57,255,20,0.03)";
+            ctx.fillRect(0, scanlineY, W, 2);
+
+            // ── CRT vignette ──
+            const vg = ctx.createRadialGradient(
+              W / 2,
+              H / 2,
+              H * 0.3,
+              W / 2,
+              H / 2,
+              H * 0.85,
+            );
+            vg.addColorStop(0, "rgba(0,0,0,0)");
+            vg.addColorStop(1, "rgba(0,0,0,0.65)");
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+          }
+
+          // ── Boot sequence text ─────────────────────────────────────
+          const BOOT_LINES = [
+            {
+              text: "EMERGENCY BROADCAST SYSTEM v2.0",
+              delay: 0,
+              color: "#1f6b10",
+            },
+            {
+              text: "▶ INITIALIZING HARDWARE...",
+              delay: 400,
+              color: "#1f6b10",
+            },
+            { text: "▶ POWER SUPPLY: OK", delay: 900, color: "#1a7a09" },
+            { text: "▶ ANTENNA ARRAY: ONLINE", delay: 1300, color: "#1a7a09" },
+            {
+              text: "▶ SCANNING FREQUENCIES...",
+              delay: 1700,
+              color: "#1a7a09",
+            },
+            {
+              text: "▶ 121.5 MHz — EMERGENCY CH — SIGNAL DETECTED",
+              delay: 2400,
+              color: "#39ff14",
+            },
+            {
+              text: "▶ WARNING: HIGH INTERFERENCE LEVELS",
+              delay: 3000,
+              color: "#ffb700",
+            },
+            {
+              text: "▶ LOADING OPERATOR PROFILE...",
+              delay: 3500,
+              color: "#1f6b10",
+            },
+            {
+              text: "▶ STATION 7-ALPHA ACTIVATED",
+              delay: 4100,
+              color: "#39ff14",
+            },
+          ];
+
+          const LORE_TEXT =
+            "[ TRANSMISI DARURAT — JAM 03:14 ]\n" +
+            "Mereka sudah menemukan stasiun Delta.\n" +
+            "Kamu satu-satunya operator yang masih aktif.\n" +
+            "Kirim sinyal. Jangan berhenti. Jangan ketahuan.";
+
+          // ── Type-writer helper ─────────────────────────────────────
+          function typeText(el, text, msPerChar, onDone, morseBeep) {
+            let i = 0;
+            const chars = text.split("");
+            function next() {
+              if (introSkipped) {
+                el.textContent += chars.slice(i).join("");
+                if (onDone) onDone();
+                return;
+              }
+              if (i >= chars.length) {
+                if (onDone) onDone();
+                return;
+              }
+              el.textContent += chars[i];
+              if (
+                morseBeep &&
+                chars[i] !== " " &&
+                chars[i] !== "\n" &&
+                Math.random() < 0.4
+              ) {
+                playMorseBeep(600 + Math.random() * 300, 0.04);
+              }
+              i++;
+              setTimeout(next, msPerChar + Math.random() * msPerChar * 0.5);
+            }
+            next();
+          }
+
+          // ── Phase sequencer ───────────────────────────────────────
+          function runPhase(phase) {
+            introPhase = phase;
+            if (introSkipped) {
+              finishIntro();
+              return;
+            }
+
+            if (phase === "noise") {
+              initIntroAudio();
+              setStaticVolume(0.25, 0.5);
+              setTimeout(() => runPhase("boot"), 1200);
+            } else if (phase === "boot") {
+              setStaticVolume(0.12, 1);
+              BOOT_LINES.forEach(({ text, delay, color }) => {
+                setTimeout(() => {
+                  if (introSkipped) return;
+                  const line = document.createElement("div");
+                  line.style.color = color;
+                  line.style.opacity = "0";
+                  line.style.transition = "opacity 0.3s";
+                  bootLog.appendChild(line);
+                  requestAnimationFrame(() => {
+                    line.style.opacity = "1";
+                  });
+                  typeText(line, text, 22, null, false);
+                  if (Math.random() < 0.3)
+                    setTimeout(() => playMorseBeep(800, 0.05), delay + 50);
+                }, delay);
+              });
+              setTimeout(() => runPhase("signal"), 5000);
+            } else if (phase === "signal") {
+              setStaticVolume(0.06, 1.5);
+              playSOS();
+              setTimeout(() => {
+                // Flicker effect then show title
+                runPhase("lore");
+              }, 2500);
+            } else if (phase === "lore") {
+              loreEl.style.opacity = "1";
+              const lines = LORE_TEXT.split("\n");
+              let lineDelay = 0;
+              lines.forEach((line, idx) => {
+                setTimeout(() => {
+                  if (introSkipped) return;
+                  const isFirst = idx === 0;
+                  const el2 = document.createElement("div");
+                  el2.style.color = isFirst ? "#ffb700" : "#39ff14";
+                  el2.style.marginBottom = isFirst ? "8px" : "0";
+                  loreEl.appendChild(el2);
+                  typeText(el2, line, isFirst ? 35 : 45, null, true);
+                }, lineDelay);
+                lineDelay += line.length * 50 + 500;
+              });
+              setTimeout(() => runPhase("title"), lineDelay + 400);
+            } else if (phase === "title") {
+              setStaticVolume(0.02, 1);
+              titleEl.style.opacity = "1";
+              titleEl.textContent = "SIGNAL TERAKHIR";
+              // Flicker effect
+              let flicks = 0;
+              const flickInterval = setInterval(() => {
+                titleEl.classList.toggle("flicker");
+                flicks++;
+                if (flicks > 6) {
+                  clearInterval(flickInterval);
+                  titleEl.classList.remove("flicker");
+                }
+              }, 120);
+              subEl.style.opacity = "1";
+              subEl.textContent =
+                "EMERGENCY BROADCAST SYSTEM — STATION 7-ALPHA";
+              setTimeout(() => runPhase("ready"), 1200);
+            } else if (phase === "ready") {
+              btn.style.display = "inline-block";
+              playMorseBeep(880, 0.15);
+              setTimeout(() => playMorseBeep(1100, 0.25), 200);
+            }
+          }
+
+          function finishIntro() {
+            introSkipped = true;
+            // Fade out overlay
+            setStaticVolume(0, 0.4);
+            overlay.style.transition = "opacity 0.6s";
+            overlay.style.opacity = "0";
+            setTimeout(() => {
+              overlay.style.display = "none";
+              if (introAnimId) cancelAnimationFrame(introAnimId);
+              try {
+                if (staticNode) staticNode.stop();
+              } catch (e) {}
+              try {
+                if (introAudioCtx) introAudioCtx.close();
+              } catch (e) {}
+            }, 650);
+          }
+
+          window.startFromIntro = function () {
+            finishIntro();
+          };
+
+          window.skipIntro = function () {
+            introSkipped = true;
+            finishIntro();
+          };
+
+          // Show skip button after 1.5s
+          setTimeout(() => {
+            skipEl.style.opacity = "0.5";
+          }, 1500);
+
+          // Kick off
+          requestAnimationFrame(drawFrame);
+          // Small delay so fonts load
+          setTimeout(() => runPhase("noise"), 100);
+        })();
+        // ============================================================
+        //  END CINEMATIC INTRO
+        // ============================================================
+
         init();
+
+        // ===== PWA: Register Service Worker =====
+        if ("serviceWorker" in navigator) {
+          const swCode = `
+const CACHE = 'signal-terakhir-v1';
+const ASSETS = ['/'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+});
+          `;
+          const blob = new Blob([swCode], { type: "application/javascript" });
+          const swURL = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swURL).catch(() => {});
+        }
+
+        // ===== PWA: Inject manifest =====
+        (function () {
+          const manifest = {
+            name: "Signal Terakhir",
+            short_name: "SigTerakhir",
+            description: "Emergency broadcast survival game",
+            start_url: ".",
+            display: "standalone",
+            background_color: "#04080a",
+            theme_color: "#04080a",
+            orientation: "portrait-primary",
+            icons: [
+              {
+                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%2304080a'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-size='110' fill='%2339ff14'%3E📡%3C/text%3E%3C/svg%3E",
+                sizes: "192x192",
+                type: "image/svg+xml",
+              },
+              {
+                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%2304080a'/%3E%3Ctext x='256' y='340' text-anchor='middle' font-size='280' fill='%2339ff14'%3E📡%3C/text%3E%3C/svg%3E",
+                sizes: "512x512",
+                type: "image/svg+xml",
+              },
+            ],
+          };
+          const blob = new Blob([JSON.stringify(manifest)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("link");
+          link.rel = "manifest";
+          link.href = url;
+          document.head.appendChild(link);
+        })();
       </script>
     </div>
   </body>
